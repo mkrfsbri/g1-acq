@@ -1,0 +1,7 @@
+# Blank profile for Anywhere: VPN tunnel + MITM with no proxy server.
+# All traffic goes DIRECT; only MITM scripts touch it.
+mixed-port: 7890
+mode: rule
+proxies: []
+rules:
+  - MATCH,DIRECT
