@@ -97,7 +97,22 @@ https://cdn.jsdelivr.net/gh/crhywun/g1-acq@main/g1-acq.js
 | 文件 | 用途 |
 |---|---|
 | `g1-acq.sgmodule` | Shadowrocket 模块(规则 + 脚本引用 + MITM) |
-| `g1-acq.js` | 响应改写脚本(v6) |
+| `g1-acq.js` | 响应改写脚本(v6,Shadowrocket) |
+| `g1-acq-anywhere.js` | 响应改写脚本(Anywhere 版,API 为 `process(ctx)` + `Anywhere.codec`) |
+| `g1-acq.amod` | Anywhere 模块(内嵌 above 脚本,导入即用) |
+
+## Anywhere(免费开源)使用
+
+1. 安装 [Anywhere](https://apps.apple.com/id/app/anywhere-proxy/id6758235178)(iOS 18+,免费)
+2. 应用内生成并安装根证书:iOS 设置 → 通用 → 关于本机 → 证书信任设置 → 开启信任
+3. 开启应用内 MITM 总开关
+4. Modules → 导入 `.amod` 文件,或订阅:
+   ```
+   https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/g1-acq.amod
+   ```
+5. 开启模块开关,连接 VPN
+6. Google App → Google One 管理员 → 订阅页 → 20TB/30TB 档订阅
+7. 验证:日志搜 `[g1-acq]`,出现 `rewrote N occurrence(s)` 即生效
 
 ## 自定义
 
