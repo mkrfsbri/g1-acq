@@ -1,7 +1,8 @@
-// g1-acq.js — Google One /ai SKU mapping, Anywhere port (from Shadowrocket v6)
+// g1-acq.js — Google One /ai SKU mapping, Anywhere port (from Shadowrocket v7)
 // Rewrites normal iOS subscription IDs to real promo tier IDs in the
 // one.google.com/ai response. Catalog-aware: falls back to the 75p tier when
-// the 90p tier is absent. No network calls, body edits only.
+// the 90p tier is absent. Logs all g1.ios.* IDs for mapping new tiers.
+// No network calls, body edits only.
 function process(ctx) {
   var body = Anywhere.codec.utf8.decode(ctx.body);
   if (!body) return;
@@ -13,6 +14,14 @@ function process(ctx) {
     if (!seen[raw[i]]) { seen[raw[i]] = 1; catalog.push(raw[i]); }
   }
   Anywhere.log.info("[g1-acq] promo tiers in catalog: " + (catalog.join(", ") || "none"));
+
+  // All iOS IAP IDs present in this response (for mapping new tiers)
+  var iosRaw = body.match(/g1\.ios\.[a-zA-Z0-9._]{2,60}/g) || [];
+  var iosSeen = {}, iosList = [];
+  for (var j = 0; j < iosRaw.length; j++) {
+    if (!iosSeen[iosRaw[j]]) { iosSeen[iosRaw[j]] = 1; iosList.push(iosRaw[j]); }
+  }
+  Anywhere.log.info("[g1-acq] iOS ids in response: " + (iosList.join(", ") || "none"));
 
   var SKU_MAP = {
     "g1.ios.20tb.m.v2": "g1.20tb.3months_ip_90p.acq",

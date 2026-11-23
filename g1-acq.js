@@ -7,11 +7,11 @@
  *      不在目录而备用档在目录时,自动落到备用档,避免把收银台指向空商品;
  *   3. 数据外置——所有映射集中在 SKU_MAP / FALLBACK 两个表里,增删档位只改表。
  *
- * 版本:v6
+ * 版本:v7
  */
 "use strict";
 
-console.log("[g1-acq] v6 loaded");
+console.log("[g1-acq] v7 loaded");
 
 /* 原始 iOS 内购 ID → 目标优惠档 */
 var SKU_MAP = {
@@ -44,6 +44,14 @@ function run() {
     if (!seen[raw[r]]) { seen[raw[r]] = 1; catalog.push(raw[r]); }
   }
   console.log("[g1-acq] 目录优惠档: " + (catalog.join(", ") || "无"));
+
+  /* 响应里出现的 iOS 内购 ID(排查新档位用) */
+  var iosRaw = body.match(/g1\.ios\.[a-zA-Z0-9._]{2,60}/g) || [];
+  var iosSeen = {}, iosList = [];
+  for (var j = 0; j < iosRaw.length; j++) {
+    if (!iosSeen[iosRaw[j]]) { iosSeen[iosRaw[j]] = 1; iosList.push(iosRaw[j]); }
+  }
+  console.log("[g1-acq] iOS ID: " + (iosList.join(", ") || "无"));
 
   var out = body, total = 0;
   var froms = Object.keys(SKU_MAP);
