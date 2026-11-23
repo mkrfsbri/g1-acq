@@ -1,0 +1,14 @@
+#!name=G1 ACQ
+#!desc=v7.5.0：被动采集原始 SKU，最近10次响应/本次新增/重复诊断；2TB 12个月优惠测试 g1.2tb.ai.12months_ip_90p（无 .acq） + 20TB/30TB 原映射与回退；本机报告与 JSON 导出；非主动查询全量 SKU
+#!system=ios
+
+[Rule]
+# 拦截 UDP 443，促使支持回退的 HTTP/3 请求改走 TCP。
+AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT-NO-DROP
+
+[Script]
+g1-acq = type=http-response,pattern=^https:\/\/one\.google\.com\/,requires-body=1,max-size=0,script-path=https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-acq.js
+g1-sku-report = type=http-request,pattern=^https:\/\/one\.google\.com\/g1-sku-report\/?(?:\?.*)?$,script-path=https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-sku-report.js
+
+[MITM]
+hostname = %APPEND% one.google.com
