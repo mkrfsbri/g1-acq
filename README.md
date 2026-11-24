@@ -98,7 +98,7 @@ Requires iOS 18+.
 7. Google App → Google One management → subscription page → the 2TB / 20TB / 30TB plans
 8. Verify: search the log for `[g1-acq]`; `v7.5 rewrote N occurrence(s)` means it is working
 
-Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. Everything else (rewrite logic, fallback, ID logging) matches upstream v7.5.
+Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (fallback logic, ID logging) matches upstream v7.5.
 
 ## Scope of effect
 

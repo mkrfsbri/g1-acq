@@ -35,8 +35,19 @@ function process(ctx) {
   Anywhere.log.info("[g1-acq] v7.5 collected " + ids.length + " id(s): " +
     (ids.map(function (id) { return id + " x" + found[id]; }).join(", ") || "none"));
 
-  // Rewrite: complete-token match, 2TB prefix -> 12-month 90p target,
-  // 20TB / 30TB via map with observed-catalog fallback.
+  // Region guard: the 12-month 90p target is a US-market SKU. Only map the
+  // 2TB sources when the response itself carries any 2TB 90p offer, so the
+  // real regional 2TB plans stay purchasable where 90p does not exist.
+  var targetLive = ids.some(function (id) {
+    return id.indexOf("2tb") !== -1 && id.indexOf("90p") !== -1;
+  });
+  if (!targetLive) {
+    Anywhere.log.info("[g1-acq] v7.5 2TB target 90p not in region catalog, 2TB rewrite skipped");
+  }
+
+  // Rewrite: complete-token match, 2TB prefix -> 12-month 90p target (only
+  // when the offer exists in this region), 20TB / 30TB via map with
+  // observed-catalog fallback.
   var total = 0;
   var out = body.replace(
     /(^|[^A-Za-z0-9._@%-])(g1\.[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g,
@@ -44,6 +55,7 @@ function process(ctx) {
       var isAnnual = id.indexOf(SOURCE_PREFIX) === 0 && id.length > SOURCE_PREFIX.length;
       var to;
       if (isAnnual) {
+        if (!targetLive) return match;
         to = TARGET;
       } else if (Object.prototype.hasOwnProperty.call(SKU_MAP, id)) {
         to = SKU_MAP[id];

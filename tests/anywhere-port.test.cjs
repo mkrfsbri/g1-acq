@@ -21,9 +21,15 @@ function run(body) {
 
 let b, o, col;
 
-b = '{"sku":"g1.ios.2tb.m.v2","x":1}';
+// A1: 2TB rewrite only fires when a 2TB 90p offer exists in the response
+b = '{"sku":"g1.ios.2tb.m.v2","t":"g1.2tb.ai.12months_ip_90p"}';
 o = run(b);
-assert.ok(o.includes("g1.2tb.ai.12months_ip_90p"), "A1 2TB prefix -> 12-month target");
+assert.ok(o.includes('"sku":"g1.2tb.ai.12months_ip_90p"'), "A1 2TB prefix -> 12-month target when 90p live");
+
+// A1b: target absent from region catalog -> real 2TB plans stay untouched
+b = '{"sku":"g1.ios.2tb.m.3month_ip_75p","t":"g1.ios.2tb.a.12month_ip_15p"}';
+o = run(b);
+assert.ok(o.includes('"sku":"g1.ios.2tb.m.3month_ip_75p"') && o.includes('"t":"g1.ios.2tb.a.12month_ip_15p"'), "A1b region guard keeps real 2TB plans");
 
 b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
