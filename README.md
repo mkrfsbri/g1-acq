@@ -96,9 +96,9 @@ Requires iOS 18+.
    ```
 6. Toggle the module on, connect the VPN
 7. Google App → Google One management → subscription page → the 2TB / 20TB / 30TB plans
-8. Verify: search the log for `[g1-acq]`; `v7.5 rewrote N occurrence(s)` means it is working
+8. Verify: search the log for `[g1-acq]`; `v7.6 rewrote N occurrence(s)` means it is working
 
-Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (fallback logic, ID logging) matches upstream v7.5.
+Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (fallback logic, ID logging) matches upstream v7.6.
 
 ## Scope of effect
 
@@ -132,8 +132,8 @@ Anywhere: search the log for `g1-acq`:
 
 | Log | Meaning |
 |---|---|
-| `v7.5 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` ID in the response, deduped with counts |
-| `v7.5 rewrote N occurrence(s)` | Replacement executed |
+| `v7.6 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` ID in the response, deduped with counts |
+| `v7.6 rewrote N occurrence(s)` | Replacement executed |
 | `primary tier not in catalog, falling back ...` | Automatically using the backup tier |
 
 After changing mapping tables: `git push`, then clear the Shadowrocket cache once (Data → Clear All Data) and reconnect; jsDelivr caches for a few minutes — purge manually with `https://purge.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-acq.js`. Anywhere subscribed modules refresh on their own schedule.
@@ -154,7 +154,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 | `g1-acq-v7.sgmodule` | Shadowrocket module: passive collection, three-tier rewrite, local report, response diagnostics |
 | `g1-acq.js` | `g1-acq-v7.6` response script (upstream v7.6.0, Shadowrocket) |
 | `g1-sku-report.js` | Local HTML report page + JSON export (Shadowrocket `http-request` script) |
-| `g1-acq-anywhere.js` | Anywhere port of the v7.5 rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
+| `g1-acq-anywhere.js` | Anywhere port of the v7.6 rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
 | `g1-acq.amod` | Anywhere module (embeds the script above, import and use) |
 | `anywhere-direct.yaml` | Blank direct profile so Anywhere can connect without a server |
 | `g1-sku-scan.js` / `g1-sku-scan.sgmodule` | Upstream legacy standalone scanner (compat, not needed for the main flow) |
