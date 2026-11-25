@@ -36,7 +36,7 @@ https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-acq-v7.sgmodule
 **Anywhere (module, this repo's port):**
 
 ```
-https://raw.githubusercontent.com/mkrfsbri/g1-acq@main/g1-acq.amod
+https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/g1-acq.amod
 ```
 
 Script addresses (already referenced inside the modules, no separate entry needed):
@@ -88,11 +88,11 @@ Requires iOS 18+.
 3. Enable the app's MITM master switch
 4. Modules → import the `.amod` file, or subscribe to:
    ```
-   https://raw.githubusercontent.com/mkrfsbri/g1-acq@main/g1-acq.amod
+   https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/g1-acq.amod
    ```
 5. Anywhere refuses to connect with zero configurations: import the blank direct profile first:
    ```
-   https://raw.githubusercontent.com/mkrfsbri/g1-acq@main/anywhere-direct.yaml
+   https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/anywhere-direct.yaml
    ```
 6. Toggle the module on, connect the VPN
 7. Google App → Google One management → subscription page → the 2TB / 20TB / 30TB plans
