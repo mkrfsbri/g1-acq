@@ -6,13 +6,13 @@
 
 Google One (iOS) subscription-page SKU mapping module for **Shadowrocket** and **Anywhere**.
 
-This repository tracks the upstream module [crhywun/g1-acq](https://github.com/crhywun/g1-acq) (`v7.5.0`) and adds an **Anywhere port** of the same feature set. Upstream is the canonical Shadowrocket release; this repo mirrors it so the Anywhere port and the Shadowrocket scripts live in one place.
+This repository tracks the upstream module [crhywun/g1-acq](https://github.com/crhywun/g1-acq) (`v7.6.0`) and adds an **Anywhere port** of the same feature set. Upstream is the canonical Shadowrocket release; this repo mirrors it so the Anywhere port and the Shadowrocket scripts live in one place.
 
-**What v7.5 does:**
+**What v7.6 does:**
 
+- **Ultra 1-month free trial**: 20TB and 30TB sources now map to the `1month_eft` trial SKUs (`g1.20tb.1month_eft.acq` / `g1.ai.ultra.1month_eft.acq`), each with its own 3-month 90p fallback
 - **Passive SKU collection**: every `g1.*` / `com.google.one.*` ID appearing in `one.google.com` responses is collected (dedup, counts, up to 300 IDs), plus diagnostics for the last 10 responses
 - **2TB → 12-month Pro offer**: the original iOS 2TB SKU (`g1.ios.2tb.*`) is rewritten to `g1.2tb.ai.12months_ip_90p` (12 months at the 90p promo price, user-specified candidate)
-- **20TB / 30TB mappings** with 75p fallback when the 90p tier is absent from the response catalog
 - **Local report page** (Shadowrocket only): open `https://one.google.com/g1-sku-report` in Safari to view collected IDs and export JSON
 
 > Only product-ID strings in the response text are rewritten. Whether an order can actually be placed, and the price and benefits charged, are subject to the App Store checkout panel and the actual state of your Google One account. Response IDs prove the page carries the string, not that the store catalogs the product.
@@ -24,7 +24,7 @@ This repository tracks the upstream module [crhywun/g1-acq](https://github.com/c
 **Shadowrocket — recommended: install the upstream release directly:**
 
 ```
-https://cdn.jsdelivr.net/gh/crhywun/g1-acq@v7.5.0/g1-acq-v7.sgmodule
+https://cdn.jsdelivr.net/gh/crhywun/g1-acq@v7.6.0/g1-acq-v7.sgmodule
 ```
 
 **Shadowrocket — mirror from this repo (identical scripts):**
@@ -51,15 +51,15 @@ https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-acq-anywhere.js
 | Original iOS IAP ID | Replaced with | Note |
 |---|---|---|
 | `g1.ios.2tb.*` (any complete SKU with this prefix) | `g1.2tb.ai.12months_ip_90p` | Original 2TB → 12-month Pro 90p offer (no `.acq` suffix) |
-| `g1.ios.20tb.m.v2` | `g1.20tb.3months_ip_90p.acq` | 20TB monthly → promo tier |
-| `g1.ios.30tb.ai.pro.m` | `g1.ai.ultra.3months_ip_90p.acq` | 30TB AI Pro monthly → AI Ultra promo tier |
+| `g1.ios.20tb.m.v2` | `g1.20tb.1month_eft.acq` | 20TB monthly → 1-month free trial |
+| `g1.ios.30tb.ai.pro.m` | `g1.ai.ultra.1month_eft.acq` | 30TB AI Pro monthly → AI Ultra 1-month free trial |
 
-The 20TB / 30TB promo tiers must actually appear in the response's product catalog before the script replaces anything; when the primary tier is absent from the catalog but the backup tier (75p) is present, it automatically falls back to the backup:
+Each of the 20TB / 30TB tiers falls back independently: when the tier's `1month_eft` default target is absent from the response catalog but its 90p backup is present, the script uses the backup; when both are absent it still uses the `1month_eft` default. 75p is no longer a fallback target in v7.6 (old records keep their historical 75p values):
 
-| Primary (90p) | Backup (75p) |
+| Default (1-month trial) | Backup (3-month 90p) |
 |---|---|
-| `g1.20tb.3months_ip_90p.acq` | `g1.20tb.3months_ip_75p.acq` |
-| `g1.ai.ultra.3months_ip_90p.acq` | `g1.ai.ultra.3months_ip_75p.acq` |
+| `g1.20tb.1month_eft.acq` | `g1.20tb.3months_ip_90p.acq` |
+| `g1.ai.ultra.1month_eft.acq` | `g1.ai.ultra.3months_ip_90p.acq` |
 
 Promo tier IDs are limited-time promotional products; their names and tiers change with Google's campaigns. The collection log lists every ID actually present in the current response — add or remove mapping entries based on that log.
 
@@ -123,9 +123,9 @@ Shadowrocket: Data → Logs → Proxy, search for `g1-acq`:
 
 | Log | Meaning |
 |---|---|
-| `g1-acq-v7.5 status=... addedCount=N candidates=N occurrences=N saved=yes/no` | Collection status, new IDs kept, deduped candidates, occurrence count, storage result |
-| `g1-acq-v7.5 hits=N annualHits=N` | Total rewrites and 2TB/Pro rewrites |
-| `source SKU -> target xN` / `fallback=75p` | Per-source rewrite result and fallback usage |
+| `g1-acq-v7.6 status=... addedCount=N candidates=N occurrences=N saved=yes/no` | Collection status, new IDs kept, deduped candidates, occurrence count, storage result |
+| `g1-acq-v7.6 hits=N annualHits=N` | Total rewrites and 2TB/Pro rewrites |
+| `source SKU -> target xN` / `fallback=...` | Per-source rewrite result and fallback usage |
 | Local report: `https://one.google.com/g1-sku-report` | On-device HTML report, JSON export, `?clear=1` manual reset |
 
 Anywhere: search the log for `g1-acq`:
@@ -152,7 +152,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 | File | Purpose |
 |---|---|
 | `g1-acq-v7.sgmodule` | Shadowrocket module: passive collection, three-tier rewrite, local report, response diagnostics |
-| `g1-acq.js` | `g1-acq-v7.5` response script (upstream v7.5.0, Shadowrocket) |
+| `g1-acq.js` | `g1-acq-v7.6` response script (upstream v7.6.0, Shadowrocket) |
 | `g1-sku-report.js` | Local HTML report page + JSON export (Shadowrocket `http-request` script) |
 | `g1-acq-anywhere.js` | Anywhere port of the v7.5 rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
 | `g1-acq.amod` | Anywhere module (embeds the script above, import and use) |

@@ -3,8 +3,8 @@
 
 (function () {
   var ROOT = "https://one.google.com/g1-sku-report";
-  var VERSION = "v7.5.0";
-  var COLLECTOR_VERSION = "g1-acq-v7.5";
+  var VERSION = "v7.6.0";
+  var COLLECTOR_VERSION = "g1-acq-v7.6";
   var CONFIGURED_TARGET = "g1.2tb.ai.12months_ip_90p";
   var LEGACY_TARGET = "g1.2tb.ai.annual";
   var SCAN_KEY = "g1.sku.scan.v1";
@@ -167,6 +167,11 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character];
     });
   }
+  function fallbackName(row) {
+    if (!row.fallback) return "否";
+    var discount = /_ip_(\d+p)\.acq$/.exec(row.to || "");
+    return discount ? discount[1] : "是";
+  }
   function table(items, withTime) {
     if (!items.length) return "<p>暂无记录。</p>";
     return "<div class=scroll><table><thead><tr><th>完整商品编号</th><th>次数</th>" +
@@ -174,7 +179,7 @@
       items.map(function (row) {
         return "<tr><td><code>" + escape(row.id) + "</code></td><td>" + row.count + "</td>" +
           (withTime ? "<td>" + escape(row.lastSeen) + "</td>" :
-            "<td><code>" + escape(row.to || "未记录") + "</code></td><td>" + (row.fallback ? "75p" : "否") + "</td>") + "</tr>";
+            "<td><code>" + escape(row.to || "未记录") + "</code></td><td>" + fallbackName(row) + "</td>") + "</tr>";
       }).join("") + "</tbody></table></div>";
   }
   function recentTable(events) {
@@ -226,7 +231,7 @@
     "<p>当前配置的 2TB 候选目标：<code>" + CONFIGURED_TARGET + "</code></p>",
     "<p class=note>本版按指定 12months_ip_90p 编号测试，完整目标以 _ip_90p 结尾；实际商品、价格与扣款周期查看 App Store 购买面板。</p>",
     "<p>版本：" + escape(report.test.version || "暂无") + "<br>状态：" + escape(status) + "；总替换次数：" + report.test.hitCount + "；其中 2TB：" + report.test.annualHitCount + "</p>",
-    "<p>2TB 源前缀：<code>g1.ios.2tb.</code><br>该次记录的 2TB 目标：<code>" + escape(report.test.target || "暂无记录") + "</code><br>20TB / 30TB 沿用旧优惠映射与 75p 回退；各档实际目标见下表。<br>执行时间（UTC）：" + escape(report.test.updatedAt || "暂无") + "</p>",
+    "<p>2TB 源前缀：<code>g1.ios.2tb.</code><br>该次记录的 2TB 目标：<code>" + escape(report.test.target || "暂无记录") + "</code><br>当前 20TB / 30TB 支持 Ultra 1个月免费试用（1month_eft），以三个月 90p 为备用；下表保留该次记录的实际目标与备用档，历史 75p 记录按原样显示。<br>执行时间（UTC）：" + escape(report.test.updatedAt || "暂无") + "</p>",
     "<p class=note>这里记录的是脚本执行结果；商品是否被 App Store 识别、价格和周期需查看购买面板。</p>",
     table(report.test.matchedFrom, false), "</section>",
     "<section><h2>浏览页面时采集到的候选 SKU</h2>",
