@@ -101,6 +101,17 @@ Requires iOS 18+.
 
 Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (75p default and 2TB target, ID logging) matches upstream v7.10; the on-device mapping editor is Shadowrocket-only, so the port keeps the built-in rules.
 
+## Installation (ProxyPin, free and open source)
+
+ProxyPin runs the same logic from a JS script instead of a module. It captures HTTPS, supports a JS `onResponse(context, request, response)` hook, and persists files on-device.
+
+1. Install [ProxyPin](https://apps.apple.com/id/app/proxypin-tangkap-trafik/id6450932949), start the VPN capture, install and trust its CA certificate (iOS Settings → General → About → **Certificate Trust Settings**)
+2. Add `one.google.com` to the capture/rewrite domain filter
+3. Script → new script → paste `g1-acq-proxypin.js` from this repo, then enable it
+4. Google App → Google One management → open a plan page → check the ProxyPin script console for `[g1-acq] v7.10`
+
+The script keeps the same mapping and the same catalog guard as the Anywhere port. ProxyPin also exposes a File API in the app support directory if you want the collected IDs written to disk between sessions; the script logs only.
+
 ## Scope of effect
 
 - URL match (Shadowrocket): `^https://one\.google\.com/` for collection, `^https://one\.google\.com/ai\?` for rewriting; the local report page intercepts `/g1-sku-report` and never leaves the device
@@ -159,6 +170,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 | `lib/mapping-config.js` | Mapping rule model: exact/prefix rules, presets, revision control, 30-rule cap |
 | `tools/build-variants.cjs` | Builds the `-discount` module/script variants from the main files |
 | `g1-acq-anywhere.js` | Anywhere port of the rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
+| `g1-acq-proxypin.js` | ProxyPin port (`async onResponse(context, request, response)`), same mapping and guards |
 | `g1-acq.amod` | Anywhere module (embeds the script above, import and use) |
 | `anywhere-direct.yaml` | Blank direct profile so Anywhere can connect without a server |
 | `g1-sku-scan.js` / `g1-sku-scan.sgmodule` | Upstream legacy standalone scanner (compat, not needed for the main flow) |
@@ -171,7 +183,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 Node.js 18+, repository root:
 
 ```sh
-node --test tests/sku-tools.test.cjs tests/mapping-editor.test.cjs && node tests/anywhere-port.test.cjs
+node --test tests/sku-tools.test.cjs tests/mapping-editor.test.cjs && node tests/anywhere-port.test.cjs && node tests/proxypin-port.test.cjs
 ```
 
 The upstream suites (189 tests) cover complete-ID and prefix matching, mapping CRUD and presets, revision conflicts, the fixed 2TB 12-month candidate, URL scope, zero-match, report compatibility with older record versions, collection dedup and limits, and module script pins. The Anywhere checks cover the ported rewrite and collector against a simulated `Anywhere` API. Test source IDs are synthetic samples, not store-listing or purchase evidence.
