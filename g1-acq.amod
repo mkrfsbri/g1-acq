@@ -1,6 +1,6 @@
 # g1-acq — Google One SKU mapping for Anywhere (port of upstream v7.10)
 name = g1-acq
-description = Port of crhywun/g1-acq v7.10.0 with catalog guards: a target SKU is only substituted when the region response actually lists it (2TB -> 12-month 90p, 20TB / 30TB -> 3-month 75p), passive SKU collection logging. No network calls, body edits only.
+description = Port of crhywun/g1-acq v7.10.0 with catalog guards: a target SKU is only substituted when the region response lists it (2TB -> 12-month 90p, 20TB / 30TB -> 3-month 75p), passive SKU collection logging. No network calls, body edits only.
 
 [MITM]
 name = Google One AI
