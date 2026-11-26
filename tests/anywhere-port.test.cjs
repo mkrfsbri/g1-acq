@@ -49,6 +49,11 @@ b = '{"a":"g1.ios.30tb.ai.pro.m","b":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
 assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A3 30TB -> Ultra 75p");
 
+// A2d: both candidates present -> the 1-month trial wins over 75p
+b = '{"a":"g1.20tb.1month_eft.acq","b":"g1.20tb.3months_ip_75p.acq","c":"g1.ios.20tb.m.v2"}';
+o = run(b);
+assert.ok(o.includes('"c":"g1.20tb.1month_eft.acq"'), "A2d trial preferred when both listed");
+
 // A4: complete-token guard (longer ID sharing the prefix is not rewritten)
 b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m","c":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);

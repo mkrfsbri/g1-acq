@@ -12,9 +12,12 @@ function process(ctx) {
   var VERSION = "v7.10";
   var TARGET = "g1.2tb.ai.12months_ip_90p";
   var SOURCE_PREFIX = "g1.ios.2tb.";
+  // Preference order per source: 1-month trial first (v7.6 behaviour, the
+  // offer that already worked here), then the 75p discount. First candidate
+  // present in the region catalog wins; none present leaves the plan alone.
   var SKU_MAP = {
-    "g1.ios.20tb.m.v2": "g1.20tb.3months_ip_75p.acq",
-    "g1.ios.30tb.ai.pro.m": "g1.ai.ultra.3months_ip_75p.acq"
+    "g1.ios.20tb.m.v2": ["g1.20tb.1month_eft.acq", "g1.20tb.3months_ip_75p.acq"],
+    "g1.ios.30tb.ai.pro.m": ["g1.ai.ultra.1month_eft.acq", "g1.ai.ultra.3months_ip_75p.acq"]
   };
 
   // Collector: every g1.* / com.google.one.* ID, deduped, with counts.
@@ -52,7 +55,13 @@ function process(ctx) {
         if (!targetLive) return match;
         to = TARGET;
       } else if (Object.prototype.hasOwnProperty.call(SKU_MAP, id)) {
-        to = SKU_MAP[id];
+        to = SKU_MAP[id].filter(function (c) {
+          return Object.prototype.hasOwnProperty.call(found, c);
+        })[0];
+        if (!to) {
+          Anywhere.log.warning("[g1-acq] " + VERSION + " no candidate target in region catalog, " + id + " left as-is");
+          return match;
+        }
       } else {
         return match;
       }
