@@ -1,4 +1,4 @@
-// tests/anywhere-port.test.cjs — one runnable check for the Anywhere v7.6 port.
+// tests/anywhere-port.test.cjs — one runnable check for the Anywhere v7.10 port.
 // Emulates the Anywhere JS API and asserts rewrite + collector behavior.
 const assert = require("assert");
 const fs = require("fs");
@@ -30,24 +30,29 @@ assert.ok(o.includes('"sku":"g1.2tb.ai.12months_ip_90p"'), "A1 2TB prefix -> 12-
 b = '{"sku":"g1.ios.2tb.m.3month_ip_75p","t":"g1.ios.2tb.a.12month_ip_15p"}';
 o = run(b);
 assert.ok(o.includes('"sku":"g1.ios.2tb.m.3month_ip_75p"') && o.includes('"t":"g1.ios.2tb.a.12month_ip_15p"'), "A1b region guard keeps real 2TB plans");
+assert.ok(logs.some((l) => l.includes("2TB rewrite skipped")), "A1c guard logged");
 
-// A2: trial default absent, 3-month 90p fallback present -> fallback used
-b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
-o = run(b);
-assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_90p\.acq/g).length === 2, "A2 90p fallback when trial absent");
-assert.ok(logs.some((l) => l.includes("falling back g1.20tb.1month_eft.acq -> g1.20tb.3months_ip_90p.acq")), "A2b fallback logged with actual target");
-
-// A3: neither trial nor 90p present (75p only) -> v7.6 keeps the 1month_eft default
+// A2: 20TB -> 3-month 75p offer (upstream default mode discount75)
 b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(o.match(/g1\.20tb\.1month_eft\.acq/g).length === 1, "A3 default trial kept when no fallback present");
-assert.ok(o.includes("g1.20tb.3months_ip_75p.acq"), "A3b unrelated 75p string untouched");
+assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
 
-// A4: complete-token guard + 30TB maps to Ultra 1-month trial
+// A2b: no fallback tiers in v7.10 -> fires even when the target is absent,
+// and a stale 90p entry is never substituted
+b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
+o = run(b);
+assert.ok(o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 1 && !logs.some((l) => l.includes("falling back")), "A2b no fallback tiers");
+
+// A3: 30TB -> AI Ultra 3-month 75p
+b = '{"a":"g1.ios.30tb.ai.pro.m"}';
+o = run(b);
+assert.ok(o.includes("g1.ai.ultra.3months_ip_75p.acq"), "A3 30TB -> Ultra 75p");
+
+// A4: complete-token guard (longer ID sharing the prefix is not rewritten)
 b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m"}';
 o = run(b);
-assert.ok(o.includes("g1.ios.20tb.m.v2extra"), "A4a complete-token guard");
-assert.ok(o.includes("g1.ai.ultra.1month_eft.acq"), "A4b 30TB mapped to Ultra trial");
+assert.ok(o.includes("g1.ios.20tb.m.v2extra"), "A4 complete-token guard");
+assert.ok(o.includes("g1.ai.ultra.3months_ip_75p.acq"), "A4b sibling rule still fires");
 
 // A5: collector dedup + counts
 b = '{"a":"g1.ios.2tb.m.v2","b":"g1.ios.2tb.m.v2","c":"com.google.one.foo.bar"}';
@@ -62,9 +67,9 @@ col = logs.find((l) => l.includes("collected"));
 assert.ok(col && col.includes("g1.ios.2tb.m.v2"), "A6a escaped dot collected");
 assert.ok(o.includes("g1\\u002eios"), "A6b escaped dot body untouched (upstream semantics)");
 
-// A7: trial target present in catalog -> stays on trial (no fallback)
-b = '{"a":"g1.ai.ultra.1month_eft.acq","b":"g1.ios.30tb.ai.pro.m"}';
+// A7: zero match leaves the body byte-identical
+b = '{"a":"g1.ios.500gb.m"}';
 o = run(b);
-assert.ok(o.match(/g1\.ai\.ultra\.1month_eft\.acq/g).length === 2, "A7 trial present stays");
+assert.strictEqual(o, b, "A7 zero match leaves body untouched");
 
 console.log("anywhere-port: ALL PASS");
