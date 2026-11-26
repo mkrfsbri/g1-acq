@@ -56,6 +56,15 @@ function process(ctx) {
       } else {
         return match;
       }
+      // Catalog guard: a target SKU the storefront does not list cannot be
+      // bought ("Pembelian belum selesai"). Skipping keeps the real plan
+      // purchasable; a false skip costs one promo, a false rewrite kills
+      // checkout. ponytail: presence in this response is the only signal
+      // available on-device.
+      if (!Object.prototype.hasOwnProperty.call(found, to)) {
+        Anywhere.log.warning("[g1-acq] " + VERSION + " " + to + " not in region catalog, " + id + " left as-is");
+        return match;
+      }
       total += 1;
       Anywhere.log.info("[g1-acq] " + id + " -> " + to);
       return before + to;

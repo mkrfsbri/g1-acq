@@ -37,22 +37,23 @@ b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
 assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
 
-// A2b: no fallback tiers in v7.10 -> fires even when the target is absent,
-// and a stale 90p entry is never substituted
+// A2b: target absent from the region catalog -> no rewrite (a blind rewrite
+// makes the store reject the purchase), and no substitute is invented
 b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 1 && !logs.some((l) => l.includes("falling back")), "A2b no fallback tiers");
+assert.ok(o.includes("g1.ios.20tb.m.v2") && !o.includes("g1.20tb.3months_ip_75p.acq"), "A2b catalog guard skips absent target");
+assert.ok(logs.some((l) => l.includes("not in region catalog")), "A2c guard logged");
 
-// A3: 30TB -> AI Ultra 3-month 75p
-b = '{"a":"g1.ios.30tb.ai.pro.m"}';
+// A3: 30TB -> AI Ultra 3-month 75p (target live in catalog)
+b = '{"a":"g1.ios.30tb.ai.pro.m","b":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
-assert.ok(o.includes("g1.ai.ultra.3months_ip_75p.acq"), "A3 30TB -> Ultra 75p");
+assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A3 30TB -> Ultra 75p");
 
 // A4: complete-token guard (longer ID sharing the prefix is not rewritten)
-b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m"}';
+b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m","c":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
 assert.ok(o.includes("g1.ios.20tb.m.v2extra"), "A4 complete-token guard");
-assert.ok(o.includes("g1.ai.ultra.3months_ip_75p.acq"), "A4b sibling rule still fires");
+assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A4b sibling rule still fires");
 
 // A5: collector dedup + counts
 b = '{"a":"g1.ios.2tb.m.v2","b":"g1.ios.2tb.m.v2","c":"com.google.one.foo.bar"}';
