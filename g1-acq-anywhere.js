@@ -55,22 +55,26 @@ function process(ctx) {
         if (!targetLive) return match;
         to = TARGET;
       } else if (Object.prototype.hasOwnProperty.call(SKU_MAP, id)) {
+        // Listed target wins. A trial target is used unlisted too: the App
+        // Store sells trial offers this response never enumerates, while a
+        // dead 75p target gets checkout rejected, so only trials go blind.
         to = SKU_MAP[id].filter(function (c) {
           return Object.prototype.hasOwnProperty.call(found, c);
-        })[0];
+        })[0] || SKU_MAP[id].filter(function (c) { return c.indexOf("_eft") !== -1; })[0];
         if (!to) {
           Anywhere.log.warning("[g1-acq] " + VERSION + " no candidate target in region catalog, " + id + " left as-is");
           return match;
         }
+        if (!Object.prototype.hasOwnProperty.call(found, to)) {
+          Anywhere.log.warning("[g1-acq] " + VERSION + " " + to + " unlisted in catalog, trying anyway");
+        }
       } else {
         return match;
       }
-      // Catalog guard: a target SKU the storefront does not list cannot be
-      // bought ("Pembelian belum selesai"). Skipping keeps the real plan
-      // purchasable; a false skip costs one promo, a false rewrite kills
-      // checkout. ponytail: presence in this response is the only signal
-      // available on-device.
-      if (!Object.prototype.hasOwnProperty.call(found, to)) {
+      // Catalog guard for the 2TB target: a SKU the storefront does not list
+      // cannot be bought ("Pembelian belum selesai"), so it stays gated.
+      // ponytail: presence in this response is the only on-device signal.
+      if (isAnnual && !Object.prototype.hasOwnProperty.call(found, to)) {
         Anywhere.log.warning("[g1-acq] " + VERSION + " " + to + " not in region catalog, " + id + " left as-is");
         return match;
       }

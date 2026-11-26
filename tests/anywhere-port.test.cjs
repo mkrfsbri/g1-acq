@@ -37,17 +37,23 @@ b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
 assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
 
-// A2b: target absent from the region catalog -> no rewrite (a blind rewrite
-// makes the store reject the purchase), and no substitute is invented
+// A2b: neither candidate listed -> unlisted trial used, 75p never invented
 b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(o.includes("g1.ios.20tb.m.v2") && !o.includes("g1.20tb.3months_ip_75p.acq"), "A2b catalog guard skips absent target");
-assert.ok(logs.some((l) => l.includes("not in region catalog")), "A2c guard logged");
+assert.ok(o.includes("g1.20tb.1month_eft.acq") && !o.includes("3months_ip_75p.acq"), "A2b unlisted trial, 75p gated");
+assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2b logged");
 
 // A3: 30TB -> AI Ultra 3-month 75p (target live in catalog)
 b = '{"a":"g1.ios.30tb.ai.pro.m","b":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
 assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A3 30TB -> Ultra 75p");
+
+// A2e: trial target unlisted -> still used (App Store sells unlisted trial
+// offers; the 75p target stays gated)
+b = '{"a":"g1.ios.30tb.ai.pro.m"}';
+o = run(b);
+assert.ok(o.includes("g1.ai.ultra.1month_eft.acq"), "A2e unlisted trial still used");
+assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2e logged");
 
 // A2d: both candidates present -> the 1-month trial wins over 75p
 b = '{"a":"g1.20tb.1month_eft.acq","b":"g1.20tb.3months_ip_75p.acq","c":"g1.ios.20tb.m.v2"}';
