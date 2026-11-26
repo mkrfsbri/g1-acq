@@ -1,21 +1,26 @@
-// g1-acq-anywhere.js — Google One SKU mapping, Anywhere port of upstream v7.10
-// (github.com/crhywun/g1-acq tag v7.10.0).
+// g1-acq-anywhere.js — Google One SKU mapping, Anywhere port of upstream v7.6
+// (github.com/crhywun/g1-acq tag v7.6.0).
 // Rewrites the original iOS 2TB SKU to the 12-month 90p Pro offer and maps
-// 20TB / 30TB to their 3-month 75p offers (upstream default mode discount75).
-// No fallback tiers: each rule fires once, whatever the response already
-// carries. Logs every g1.* / com.google.one.* ID found in the response
+// 20TB / 30TB to their Ultra 1-month free-trial SKUs with 3-month 90p
+// fallbacks. Logs every g1.* / com.google.one.* ID found in the response
 // (dedup) for mapping new tiers. No network calls, body edits only.
 function process(ctx) {
   var body = Anywhere.codec.utf8.decode(ctx.body);
   if (!body) return;
 
-  var VERSION = "v7.10";
   var TARGET = "g1.2tb.ai.12months_ip_90p";
   var SOURCE_PREFIX = "g1.ios.2tb.";
   var SKU_MAP = {
-    "g1.ios.20tb.m.v2": "g1.20tb.3months_ip_75p.acq",
-    "g1.ios.30tb.ai.pro.m": "g1.ai.ultra.3months_ip_75p.acq"
+    "g1.ios.20tb.m.v2": "g1.20tb.1month_eft.acq",
+    "g1.ios.30tb.ai.pro.m": "g1.ai.ultra.1month_eft.acq"
   };
+  var FALLBACK = {
+    "g1.20tb.1month_eft.acq": "g1.20tb.3months_ip_90p.acq",
+    "g1.ai.ultra.1month_eft.acq": "g1.ai.ultra.3months_ip_90p.acq"
+  };
+
+  // Promo tiers actually present in this response (fallback basis)
+  var observed = body.match(/g1\.[a-z0-9._]{2,60}acq/g) || [];
 
   // Collector: every g1.* / com.google.one.* ID, deduped, with counts.
   // Log-only: Anywhere persistent storage API unverified, upstream uses
@@ -27,7 +32,7 @@ function process(ctx) {
     found[m[2]] = (found[m[2]] || 0) + 1;
   }
   var ids = Object.keys(found).sort();
-  Anywhere.log.info("[g1-acq] " + VERSION + " collected " + ids.length + " id(s): " +
+  Anywhere.log.info("[g1-acq] v7.6 collected " + ids.length + " id(s): " +
     (ids.map(function (id) { return id + " x" + found[id]; }).join(", ") || "none"));
 
   // Region guard: the 12-month 90p target is a US-market SKU. Only map the
@@ -37,11 +42,12 @@ function process(ctx) {
     return id.indexOf("2tb") !== -1 && id.indexOf("90p") !== -1;
   });
   if (!targetLive) {
-    Anywhere.log.info("[g1-acq] " + VERSION + " 2TB target 90p not in region catalog, 2TB rewrite skipped");
+    Anywhere.log.info("[g1-acq] v7.6 2TB target 90p not in region catalog, 2TB rewrite skipped");
   }
 
   // Rewrite: complete-token match, 2TB prefix -> 12-month 90p target (only
-  // when the offer exists in this region), 20TB / 30TB via the fixed map.
+  // when the offer exists in this region), 20TB / 30TB via map with
+  // observed-catalog fallback.
   var total = 0;
   var out = body.replace(
     /(^|[^A-Za-z0-9._@%-])(g1\.[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g,
@@ -53,14 +59,11 @@ function process(ctx) {
         to = TARGET;
       } else if (Object.prototype.hasOwnProperty.call(SKU_MAP, id)) {
         to = SKU_MAP[id];
+        if (observed.indexOf(to) === -1 && FALLBACK[to] && observed.indexOf(FALLBACK[to]) !== -1) {
+          to = FALLBACK[to];
+          Anywhere.log.warning("[g1-acq] primary tier not in catalog, falling back " + SKU_MAP[id] + " -> " + to);
+        }
       } else {
-        return match;
-      }
-      // Catalog guard: a target the storefront does not sell gets the checkout
-      // rejected ("Pembelian belum selesai"), so it is never substituted.
-      // ponytail: presence in this response is the only on-device signal.
-      if (!Object.prototype.hasOwnProperty.call(found, to)) {
-        Anywhere.log.warning("[g1-acq] " + VERSION + " " + to + " not in region catalog, " + id + " left as-is");
         return match;
       }
       total += 1;
@@ -69,6 +72,6 @@ function process(ctx) {
     }
   );
 
-  Anywhere.log.info(total ? "[g1-acq] " + VERSION + " rewrote " + total + " occurrence(s)" : "[g1-acq] " + VERSION + " no match");
+  Anywhere.log.info(total ? "[g1-acq] v7.6 rewrote " + total + " occurrence(s)" : "[g1-acq] v7.6 no match");
   if (total) ctx.body = Anywhere.codec.utf8.encode(out);
 }
