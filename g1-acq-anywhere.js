@@ -13,7 +13,7 @@ function process(ctx) {
   var TARGET = "g1.2tb.ai.12months_ip_90p";
   var SOURCE_PREFIX = "g1.ios.2tb.";
   var SKU_MAP = {
-    "g1.ios.20tb.m.v2": "g1.20tb.3months_ip_75p.acq",
+    "g1.ios.20tb.m.v2": "g1.ios.helium.m.3month_ip_75p.acq", // experimental: probe what tier "helium" is
     "g1.ios.30tb.ai.pro.m": "g1.ai.ultra.3months_ip_75p.acq"
   };
 

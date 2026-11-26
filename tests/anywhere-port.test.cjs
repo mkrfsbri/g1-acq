@@ -32,16 +32,16 @@ o = run(b);
 assert.ok(o.includes('"sku":"g1.ios.2tb.m.3month_ip_75p"') && o.includes('"t":"g1.ios.2tb.a.12month_ip_15p"'), "A1b region guard keeps real 2TB plans");
 assert.ok(logs.some((l) => l.includes("2TB rewrite skipped")), "A1c guard logged");
 
-// A2: 20TB -> 3-month 75p offer (upstream default mode discount75)
-b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
+// A2: 20TB -> helium 3-month 75p (experimental probe, target live in catalog)
+b = '{"a":"g1.ios.helium.m.3month_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
+assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.ios\.helium\.m\.3month_ip_75p\.acq/g).length === 2, "A2 20TB -> helium 75p");
 
 // A2b: target absent from the region catalog -> no rewrite (a blind rewrite
 // makes the store reject the purchase), and no substitute is invented
 b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(o.includes("g1.ios.20tb.m.v2") && !o.includes("g1.20tb.3months_ip_75p.acq"), "A2b catalog guard skips absent target");
+assert.ok(o.includes("g1.ios.20tb.m.v2") && !o.includes("helium"), "A2b catalog guard skips absent target");
 assert.ok(logs.some((l) => l.includes("not in region catalog")), "A2c guard logged");
 
 // A3: 30TB -> AI Ultra 3-month 75p (target live in catalog)
