@@ -175,6 +175,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 | `anywhere-direct.yaml` | Blank direct profile so Anywhere can connect without a server |
 | `g1-sku-scan.js` / `g1-sku-scan.sgmodule` | Upstream legacy standalone scanner (compat, not needed for the main flow) |
 | `g1-pro-annual-test.js` / `g1-pro-annual-test.sgmodule` | Upstream legacy annual-test entry (compat, not needed for the main flow) |
+| `docs/TUTORIAL-ID.md` | Panduan pemakaian lengkap dalam Bahasa Indonesia (ProxyPin / Anywhere / Shadowrocket, mapping, troubleshooting) |
 | `docs/pro-annual-test.md` | Upstream guide: SKU management, presets, passive collection diagnostics, on-device verification |
 | `tests/` | Offline test suites (upstream 189 tests + Anywhere port checks) |
 
