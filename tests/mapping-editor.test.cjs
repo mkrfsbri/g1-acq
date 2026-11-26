@@ -12,8 +12,8 @@ const ORIGIN = "https://one.google.com";
 const CONFIG_KEY = "g1.sku.mappings.v1";
 const SCAN_KEY = "g1.sku.scan.v1";
 const TEST_KEY = "g1.pro.annual.test.v1";
-const VERSION = "g1-acq-v7.10-mappings";
-const REPORT_VERSION = "v7.10.0";
+const VERSION = "g1-acq-v7.11-mappings";
+const REPORT_VERSION = "v7.11.0";
 const DEFAULT_REVISION = "defaults-75p-v1";
 const TARGET = "g1.2tb.ai.12months_ip_90p";
 const SOURCE = "g1.ios.2tb.fixture_monthly";
@@ -25,8 +25,14 @@ const CUSTOM_TARGET = "com.google.one.fixture_annual";
 const NEXT_TARGET = "g1.fixture.next_offer";
 const FIXED_TIME = "2026-11-23T07:40:06.325Z";
 const TURKEY_TARGET = "g1.ios.30tb.m";
+const TR_PRO_TARGET = "com.google.gemini.2tb.ai.m.3month_ip_99p";
 // Independent contract fixtures: catalog rules deliberately have no persistent IDs.
 const PRESETS = [
+  {
+    id: "pro-1yuan", title: "1 元开 Pro（前三月约 1 元/月）",
+    description: "实测成功：改写后收银台前三月约 1 元/月，入口选 Ultra 5x，实际到手 Pro。周期与金额按 App Store 面板核对。",
+    rules: [{ match: "exact", from: TWENTY, to: TR_PRO_TARGET, enabled: true }]
+  },
   {
     id: "tr-ultra-30tb", title: "土区 30TB · 2949.99 里拉记录",
     description: "旧 iOS 30TB 编号；公开记录曾调起 2949.99 里拉报价，实际金额与周期查看 App Store。",
@@ -1182,7 +1188,7 @@ for (const variant of VARIANTS) {
         assert(card.includes(rule.match === "exact" ? "完整 SKU" : "前缀"));
         assert(candidates.has(rule.to), "preset target belongs in the datalist");
       }
-      assert.equal(card.includes("当前规则一致"), preset.id !== "tr-ultra-30tb");
+      assert.equal(card.includes("当前规则一致"), preset.id !== "tr-ultra-30tb" && preset.id !== "pro-1yuan");
     }
     assert(!section.includes("1month_eft"));
     assert(!section.includes("3months_ip_90p"));
@@ -1261,14 +1267,15 @@ for (const variant of VARIANTS) {
       assert.deepEqual(changed.config.rules.map(rule => rule.id), [...rules, unrelated].map(rule => rule.id));
       assert.deepEqual(changed.config.rules.at(-1), unrelated);
       const response = run(variant.script, { storage, body: JSON.stringify([SOURCE, TWENTY, THIRTY, COM_SOURCE]) });
-      const expected = preset.id === "tr-ultra-30tb" ? [SOURCE, TWENTY, TURKEY_TARGET, CUSTOM_TARGET] :
+      const expected = preset.id === "pro-1yuan" ? [SOURCE, TR_PRO_TARGET, THIRTY, CUSTOM_TARGET] :
+        preset.id === "tr-ultra-30tb" ? [SOURCE, TR_PRO_TARGET, TURKEY_TARGET, CUSTOM_TARGET] :
         preset.id === "ultra-75p" ? [SOURCE, DEFAULT_RULES[1].to, DEFAULT_RULES[2].to, CUSTOM_TARGET] :
         [TARGET, DEFAULT_RULES[1].to, DEFAULT_RULES[2].to, CUSTOM_TARGET];
       assert.deepEqual(JSON.parse(response.payload.body), expected);
     }
     const config = exported(variant, storage).data.mappingConfig;
     assert.deepEqual(config.rules, [...DEFAULT_RULES, unrelated]);
-    assert(config.rules.every(rule => !oldTargets.includes(rule.to) && rule.to !== TURKEY_TARGET));
+    assert(config.rules.every(rule => !oldTargets.includes(rule.to) && rule.to !== TURKEY_TARGET && rule.to !== TR_PRO_TARGET));
     const reset = change(variant, storage, "reset");
     assert.deepEqual(reset.config.rules, DEFAULT_RULES);
     assertStored(storage, [], false);
@@ -1286,7 +1293,7 @@ for (const variant of VARIANTS) {
     ];
     const storage = withConfig(rules);
     const unrelatedIndexes = [0, 1, 2, 5];
-    for (const preset of [PRESETS[2], PRESETS[0], PRESETS[1]]) {
+    for (const preset of [PRESETS[3], PRESETS[0], PRESETS[2]]) {
       const changed = change(variant, storage, "preset", preset.id);
       assertPresetRules(changed.config, preset);
       assert.deepEqual(changed.config.rules.map(rule => rule.id), rules.map(rule => rule.id));
@@ -1314,7 +1321,7 @@ for (const variant of VARIANTS) {
       exactRule({ id: "last-filler", from: "g1.fixture.last_filler", enabled: false })]);
     const added = change(variant, oneSlot, "preset", "ultra-75p");
     assert.equal(added.config.rules.length, 30);
-    assertPresetRules(added.config, PRESETS[1]);
+    assertPresetRules(added.config, PRESETS[2]);
     assert.equal(added.config.rules[0].id, "default-20tb");
     assert.equal(added.config.rules.at(-1).from, THIRTY);
     assert.equal(new Set(added.config.rules.map(rule => rule.id)).size, 30);
@@ -1448,7 +1455,7 @@ for (const variant of VARIANTS) {
     assertRedirect(variant, submit(variant, storage, reset, "reset"), "reset");
     assertStored(storage, [], false);
     const applied = change(variant, storage, "preset", "tr-ultra-30tb");
-    assertPresetRules(applied.config, PRESETS[0]);
+    assertPresetRules(applied.config, PRESETS[1]);
     assert.equal(run(variant.script, { storage, body: THIRTY }).payload.body, TURKEY_TARGET);
   });
 
@@ -1709,7 +1716,7 @@ nodeTest("applyPreset accepts only builtin IDs and ignores caller-supplied rule 
   assert.equal(result.ok, true);
   assert.equal(result.status, 200);
   assert.equal(result.error, "");
-  assert.deepEqual(withoutIds(result.config.rules), PRESETS[0].rules);
+  assert.deepEqual(withoutIds(result.config.rules), PRESETS[1].rules);
   assert.deepEqual(harness.writes.map(write => write.key), [CONFIG_KEY]);
   assertStored(harness.storage, result.config.rules);
 });
@@ -1725,7 +1732,7 @@ nodeTest("preset insertion stays unique and bounded when every random value repe
   assert.equal(applied.status, 200);
   assert.equal(applied.config.rules.length, 30);
   assert.deepEqual(applied.config.rules.slice(0, 28), rules);
-  assert.deepEqual(withoutIds(applied.config.rules.slice(28)), PRESETS[1].rules);
+  assert.deepEqual(withoutIds(applied.config.rules.slice(28)), PRESETS[2].rules);
   assert.equal(new Set(applied.config.rules.map(rule => rule.id)).size, 30);
   assert(applied.config.rules.every(rule => /^[a-z][a-z0-9-]{0,39}$/.test(rule.id)));
   assert.equal(harness.invoke("validateRules", applied.config.rules).ok, true);

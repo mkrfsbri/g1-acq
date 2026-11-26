@@ -18,9 +18,9 @@ const OTHER_SOURCE = "g1.ios.2tb.fixture_annual";
 const TWENTY = "g1.ios.20tb.m.v2";
 const THIRTY = "g1.ios.30tb.ai.pro.m";
 // Expected offers are explicit fixtures, independent of the scripts and builder.
-const VERSION = "g1-acq-v7.10-mappings";
+const VERSION = "g1-acq-v7.11-mappings";
 const MODE = "discount75";
-const REPORT_VERSION = "v7.10.0";
+const REPORT_VERSION = "v7.11.0";
 const MODE_LABELS = {
   trial: "Ultra 1个月免费试用优先（历史模式）",
   discount: "Ultra 三个月一折优先（历史模式）",
@@ -415,7 +415,7 @@ for (const variant of VARIANTS) {
     assert.match(payload.response.body, /Google One SKU 管理/);
     assert(payload.response.body.includes(SOURCE));
     assert(payload.response.body.includes(TARGET));
-    assert(payload.response.body.includes("本机脚本已接管 · v7.10.0"));
+    assert(payload.response.body.includes("本机脚本已接管 · v7.11.0"));
     assert.match(payload.response.body, /<button\b[^>]*name=format[^>]*value=json[^>]*>导出 JSON<\/button>/);
     assert(!/<(?:script|img|iframe)\b/i.test(payload.response.body));
     assert.equal(payload.response.headers["Cache-Control"], "no-store");
@@ -434,15 +434,15 @@ for (const variant of VARIANTS) {
       const result = run(variant.report, { url: exportURL, storage });
       assert.equal(result.payload.response.status, 200);
       assert.equal(result.payload.response.headers["Content-Disposition"], 'attachment; filename="g1-sku-report.json"');
-      assert.equal(result.payload.response.headers["X-G1-Report-Version"], "v7.10.0");
+      assert.equal(result.payload.response.headers["X-G1-Report-Version"], "v7.11.0");
       const data = JSON.parse(result.payload.response.body);
-      assert.equal(data.reportVersion, "v7.10.0");
+      assert.equal(data.reportVersion, "v7.11.0");
       assert.equal(data.configuredTarget, TARGET);
       assert.equal(data.test.target, TARGET);
       assert.equal(data.test.targetOrigin, "user-specified");
       assert.equal(data.scan.skus[0].id, SOURCE);
       assert.equal(data.test.matchedFrom[0].to, TARGET);
-      assert(result.logs.some(line => line.includes("[g1-sku-report] v7.10.0 json")));
+      assert(result.logs.some(line => line.includes("[g1-sku-report] v7.11.0 json")));
     }
   });
 
@@ -972,13 +972,13 @@ for (const variant of VARIANTS) {
     }
   });
 
-  test("only the exact v7.10 mappings collector version is labeled current in either report", () => {
+  test("only the exact v7.11 mappings collector version is labeled current in either report", () => {
     const oldVersions = [
       "pro-annual-test-v1", "pro-annual-test-v2", "g1-acq-v7", "g1-acq-v7.0", "g1-acq-v7.1",
       "g1-acq-v7.2", "g1-acq-v7.3", "g1-acq-v7.4", "g1-acq-v7.5", "g1-acq-v7.6",
       "g1-acq-v7.7-trial", "g1-acq-v7.7-discount", "g1-acq-v7.8", "g1-acq-v7.8-75p", "g1-acq-v7.8-75p-extra",
       "g1-acq-v7.9-75p", "g1-acq-v7.9-mappings", "g1-acq-v7.9-mappings-extra",
-      "g1-acq-v7.10", "g1-acq-v7.10-75p", "g1-acq-v7.10-mappings-extra"
+      "g1-acq-v7.10", "g1-acq-v7.10-75p", "g1-acq-v7.10-mappings", "g1-acq-v7.11-mappings-extra"
     ];
     for (const version of [VERSION, ...oldVersions]) {
       const isCurrent = version === VERSION;
@@ -1123,10 +1123,10 @@ nodeTest("collector passes through on storage failure", () => {
   assert(result.logs.some(line => line.includes("saved=no")));
 });
 
-nodeTest("exactly four modules pin v7.10.0 and pair the retained entries with their reports", () => {
+nodeTest("exactly four modules pin v7.11.0 and pair the retained entries with their reports", () => {
   assert.equal(fs.existsSync(path.join(root, "g1-acq.sgmodule")), false);
   assert.equal(fs.existsSync(path.join(root, "g1-acq-ultra-trial.sgmodule")), false);
-  const scriptBase = "https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/";
+  const scriptBase = "https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/";
   const modules = [
     { file: "g1-acq-ultra-discount.sgmodule", name: "G1 ACQ SKU 管理", script: "g1-acq-discount.js", report: "g1-sku-report-discount.js", allPaths: true },
     { file: "g1-acq-v7.sgmodule", name: "G1 ACQ", script: "g1-acq.js", report: "g1-sku-report.js", allPaths: true },
@@ -1141,7 +1141,7 @@ nodeTest("exactly four modules pin v7.10.0 and pair the retained entries with th
     if (entry.name) assert(module.split(/\r?\n/).includes("#!name=" + entry.name), entry.file);
     for (const script of scripts) {
       const url = script.match(/script-path=([^,\s]+)/)[1];
-      assert.match(url, /^https:\/\/cdn\.jsdelivr\.net\/gh\/mkrfsbri\/g1-acq@v7\.10\.0\/[a-z0-9.-]+\.js$/);
+      assert.match(url, /^https:\/\/cdn\.jsdelivr\.net\/gh\/mkrfsbri\/g1-acq@v7\.11\.0\/[a-z0-9.-]+\.js$/);
       assert.equal(url.slice(0, url.lastIndexOf("/") + 1), scriptBase);
       assert(fs.existsSync(path.join(root, url.split("/").at(-1))));
     }

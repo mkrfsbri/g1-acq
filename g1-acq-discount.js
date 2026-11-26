@@ -29,6 +29,14 @@ function createG1MappingConfig(store) {
   function presets() {
     return [
       {
+        id: "pro-1yuan",
+        title: "1 元开 Pro（前三月约 1 元/月）",
+        description: "实测成功：改写后收银台前三月约 1 元/月，入口选 Ultra 5x，实际到手 Pro。周期与金额按 App Store 面板核对。",
+        rules: [
+          { match: "exact", from: "g1.ios.20tb.m.v2", to: "com.google.gemini.2tb.ai.m.3month_ip_99p", enabled: true }
+        ]
+      },
+      {
         id: "tr-ultra-30tb",
         title: "土区 30TB · 2949.99 里拉记录",
         description: "旧 iOS 30TB 编号；公开记录曾调起 2949.99 里拉报价，实际金额与周期查看 App Store。",
@@ -58,12 +66,12 @@ function createG1MappingConfig(store) {
 
   function validSku(value) {
     return typeof value === "string" &&
-      /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{0,159}[A-Za-z0-9_-]$(?![\s\S])/.test(value);
+      /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{0,159}[A-Za-z0-9_-]$(?![\s\S])/.test(value);
   }
 
   function validPrefix(value) {
     return typeof value === "string" &&
-      /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{1,159}\.$(?![\s\S])/.test(value);
+      /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{1,159}\.$(?![\s\S])/.test(value);
   }
 
   function hasFields(value, fields, allowExtra) {
@@ -91,7 +99,7 @@ function createG1MappingConfig(store) {
           (rule.match !== "exact" && rule.match !== "prefix") ||
           !(rule.match === "exact" ? validSku(rule.from) : validPrefix(rule.from)) ||
           !validSku(rule.to) || typeof rule.enabled !== "boolean") {
-        return invalidRules("请填写完整 SKU；前缀需以点结尾，目标需为 g1. 或 com.google.one. 编号。");
+        return invalidRules("请填写完整 SKU；前缀需以点结尾，目标需为 g1.、com.google.one. 或 com.google.gemini. 编号。");
       }
       if (rule.from === rule.to) return invalidRules("原始 SKU 与目标 SKU 相同，请填写不同的目标。");
       if (ids[rule.id]) return invalidRules("规则标识重复，请刷新管理页后重试。");
@@ -297,7 +305,7 @@ function createG1MappingConfig(store) {
 // END GENERATED MAPPING CONFIG
 
 (function () {
-  var VERSION = "g1-acq-v7.10-mappings";
+  var VERSION = "g1-acq-v7.11-mappings";
   var SOURCE_PREFIX = "g1.ios.2tb.";
   var TEST_KEY = "g1.pro.annual.test.v1";
   var SCAN_KEY = "g1.sku.scan.v1";
@@ -339,7 +347,7 @@ function createG1MappingConfig(store) {
   if (typeof body === "string" && !configError) {
     // Resolve complete tokens once; replacement targets are never matched again.
     out = body.replace(
-      /(^|[^A-Za-z0-9._@%-])((?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g,
+      /(^|[^A-Za-z0-9._@%-])((?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g,
       function (match, before, id) {
         var rule = mappingEngine.resolve(id, mappingConfig);
         if (!rule) return match;
@@ -405,7 +413,7 @@ function createG1MappingConfig(store) {
 
     var byId = Object.create(null);
     var ids = [];
-    var validId = /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{1,160}$/;
+    var validId = /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{1,160}$/;
     var oldRows = Array.isArray(saved.skus) ? saved.skus : [];
     oldRows.slice(0, SCAN_LIMIT).forEach(function (row) {
       if (!row || typeof row.id !== "string" || !validId.test(row.id) || byId[row.id]) return;
@@ -427,7 +435,7 @@ function createG1MappingConfig(store) {
     if (isText) {
       // Decode escaped dots on a discovery copy before rewriting the original body.
       var text = originalBody.replace(/\\u002e|\\x2e|&#0*46;|&#x0*2e;|&period;/gi, ".");
-      var token = /(^|[^A-Za-z0-9._@%-])((?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g;
+      var token = /(^|[^A-Za-z0-9._@%-])((?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]+)(?=$|[^A-Za-z0-9._-])/g;
       var match;
       while ((match = token.exec(text)) !== null) {
         var id = match[2];

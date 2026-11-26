@@ -6,14 +6,14 @@
 
 Google One (iOS) subscription-page SKU mapping module for **Shadowrocket** and **Anywhere**.
 
-This repository tracks the upstream module [crhywun/g1-acq](https://github.com/crhywun/g1-acq) (`v7.10.0`) and adds an **Anywhere port** of the same feature set. Upstream is the canonical Shadowrocket release; this repo mirrors it so the Anywhere port and the Shadowrocket scripts live in one place.
+This repository tracks the upstream module [crhywun/g1-acq](https://github.com/crhywun/g1-acq) (`v7.11.0`) and adds **Anywhere and ProxyPin ports** of the same feature set. Upstream is the canonical Shadowrocket release; this repo mirrors it so the ports and the Shadowrocket scripts live in one place.
 
-**What v7.10 does:**
+**What v7.11 does:**
 
-- **Configurable SKU mappings with local editor**: the report page covers preset templates (`ultra-75p`, `tr-ultra-30tb`, `pro-12months-90p`) applied with one tap, plus manual rules (exact or prefix match, enable/disable, 30-rule cap), all saved on-device under `g1.sku.mappings.v1`
+- **Configurable SKU mappings with local editor**: the report page covers four preset templates (`ultra-75p`, `tr-ultra-30tb`, `pro-12months-90p`, `pro-1yuan`) applied with one tap, plus manual rules (exact or prefix match, enable/disable, 30-rule cap), all saved on-device under `g1.sku.mappings.v1`
 - **Default mode `discount75`**: 20TB / 30TB → their 3-month 75p offers (75% off), original iOS 2TB → `g1.2tb.ai.12months_ip_90p`
 - **No fallback tiers**: each enabled rule is applied once; a target already present in the response does not change execution
-- **Passive SKU collection**: every `g1.*` / `com.google.one.*` ID appearing in `one.google.com` responses is collected (dedup, counts, up to 300 IDs), plus diagnostics for the last 10 responses
+- **Passive SKU collection**: every `g1.*` / `com.google.one.*` / `com.google.gemini.*` ID appearing in `one.google.com` responses is collected (dedup, counts, up to 300 IDs), plus diagnostics for the last 10 responses
 - **Local report page**: open `https://one.google.com/g1-sku-report` in Safari to view collected IDs, edit mappings and export JSON
 
 > Only product-ID strings in the response text are rewritten. Whether an order can actually be placed, and the price and benefits charged, are subject to the App Store checkout panel and the actual state of your Google One account. Response IDs prove the page carries the string, not that the store catalogs the product.
@@ -25,13 +25,13 @@ This repository tracks the upstream module [crhywun/g1-acq](https://github.com/c
 **Shadowrocket — recommended: install the upstream release directly:**
 
 ```
-https://cdn.jsdelivr.net/gh/crhywun/g1-acq@v7.10.0/g1-acq-ultra-discount.sgmodule
+https://cdn.jsdelivr.net/gh/crhywun/g1-acq@v7.11.0/g1-acq-ultra-discount.sgmodule
 ```
 
-**Shadowrocket — mirror from this repo (identical scripts, same `v7.10.0` pin):**
+**Shadowrocket — mirror from this repo (identical scripts, same `v7.11.0` pin):**
 
 ```
-https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/g1-acq-ultra-discount.sgmodule
+https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-acq-ultra-discount.sgmodule
 ```
 
 **Anywhere (module, this repo's port):**
@@ -43,14 +43,14 @@ https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/g1-acq.amod
 Script addresses (already referenced inside the modules, no separate entry needed):
 
 ```
-https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/g1-acq-discount.js
-https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/g1-sku-report-discount.js
+https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-acq-discount.js
+https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-sku-report-discount.js
 https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@main/g1-acq-anywhere.js
 ```
 
 ## Mapping table
 
-Upstream v7.10 ships three built-in rules (mode `discount75`) and lets you change them on-device:
+Upstream v7.11 ships three built-in rules (mode `discount75`) and lets you change them on-device:
 
 | Original iOS IAP ID | Replaced with | Note |
 |---|---|---|
@@ -58,9 +58,9 @@ Upstream v7.10 ships three built-in rules (mode `discount75`) and lets you chang
 | `g1.ios.20tb.m.v2` | `g1.20tb.3months_ip_75p.acq` | 20TB monthly → 3-month 75p offer (75% off) |
 | `g1.ios.30tb.ai.pro.m` | `g1.ai.ultra.3months_ip_75p.acq` | 30TB AI Pro monthly → AI Ultra 3-month 75p offer |
 
-Preset templates available in the report page: `ultra-75p` (the default 75p pair), `tr-ultra-30tb` (Turkey price track, uses the older `g1.ios.30tb.m` ID), `pro-12months-90p` (2TB prefix rule). Applying a preset merges it into your rules and saves it locally; the next `/ai?` response uses the new rules, so reload the plan page afterwards.
+Preset templates available in the report page: `ultra-75p` (the default 75p pair), `tr-ultra-30tb` (Turkey price track, uses the older `g1.ios.30tb.m` ID), `pro-12months-90p` (2TB prefix rule), `pro-1yuan` (Pro tier one-yuan style offer, v7.11). Applying a preset merges it into your rules and saves it locally; the next `/ai?` response uses the new rules, so reload the plan page afterwards.
 
-There are no fallback tiers in v7.10: every enabled rule fires once, and whether the target already appears in the response does not change execution. `75p` means 75% off (pay 25%), `90p` means 90% off (pay 10%).
+There are no fallback tiers in v7.11: every enabled rule fires once, and whether the target already appears in the response does not change execution. `75p` means 75% off (pay 25%), `90p` means 90% off (pay 10%).
 
 Promo tier IDs are limited-time promotional products; their names and tiers change with Google's campaigns. The collection log lists every ID actually present in the current response — add or edit mapping rules based on that log.
 
@@ -97,9 +97,9 @@ Requires iOS 18+.
    ```
 6. Toggle the module on, connect the VPN
 7. Google App → Google One management → subscription page → the 2TB / 20TB / 30TB plans
-8. Verify: search the log for `[g1-acq]`; `v7.10 rewrote N occurrence(s)` means it is working
+8. Verify: search the log for `[g1-acq]`; `v7.6 rewrote N occurrence(s)` means it is working
 
-Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (75p default and 2TB target, ID logging) matches upstream v7.10; the on-device mapping editor is Shadowrocket-only, so the port keeps the built-in rules.
+Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (75p default and 2TB target, ID logging) matches upstream v7.11 defaults; the on-device mapping editor is Shadowrocket-only, so the port keeps the built-in rules.
 
 ## Installation (ProxyPin, free and open source)
 
@@ -108,7 +108,7 @@ ProxyPin runs the same logic from a JS script instead of a module. It captures H
 1. Install [ProxyPin](https://apps.apple.com/id/app/proxypin-tangkap-trafik/id6450932949), start the VPN capture, install and trust its CA certificate (iOS Settings → General → About → **Certificate Trust Settings**)
 2. Add `one.google.com` to the capture/rewrite domain filter
 3. Script → new script → paste `g1-acq-proxypin.js` from this repo, then enable it
-4. Google App → Google One management → open a plan page → check the ProxyPin script console for `[g1-acq] v7.10`
+4. Google App → Google One management → open a plan page → check the ProxyPin script console for `[g1-acq] v7.6` (port) or `[g1-acq] v7.11` (Shadowrocket)
 
 The script keeps the same mapping and the same catalog guard as the Anywhere port. ProxyPin also exposes a File API in the app support directory if you want the collected IDs written to disk between sessions; the script logs only.
 
@@ -135,20 +135,20 @@ Shadowrocket: Data → Logs → Proxy, search for `g1-acq`:
 
 | Log | Meaning |
 |---|---|
-| `g1-acq-v7.10-mappings status=... addedCount=N candidates=N occurrences=N saved=yes/no` | Collection status, new IDs kept, deduped candidates, occurrence count, storage result |
-| `g1-acq-v7.10-mappings hits=N annualHits=N` | Total rewrites and 2TB/Pro rewrites |
-| `source SKU -> target xN` | Per-source rewrite result (no fallback tiers in v7.10) |
+| `g1-acq-v7.11-mappings status=... addedCount=N candidates=N occurrences=N saved=yes/no` | Collection status, new IDs kept, deduped candidates, occurrence count, storage result |
+| `g1-acq-v7.11-mappings hits=N annualHits=N` | Total rewrites and 2TB/Pro rewrites |
+| `source SKU -> target xN` | Per-source rewrite result (no fallback tiers in v7.11) |
 | Local report: `https://one.google.com/g1-sku-report` | On-device HTML report, JSON export, `?clear=1` manual reset |
 
 Anywhere: search the log for `g1-acq`:
 
 | Log | Meaning |
 |---|---|
-| `v7.10 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` ID in the response, deduped with counts |
-| `v7.10 rewrote N occurrence(s)` | Replacement executed |
+| `v7.6 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` ID in the response, deduped with counts |
+| `v7.6 rewrote N occurrence(s)` | Replacement executed |
 | `2TB target 90p not in region catalog, 2TB rewrite skipped` | Region guard: real regional 2TB plans left purchasable |
 
-After changing mapping tables: `git push`, then clear the Shadowrocket cache once (Data → Clear All Data) and reconnect; jsDelivr caches for a few minutes — purge manually with `https://purge.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/g1-acq-discount.js`. Anywhere subscribed modules refresh on their own schedule.
+After changing mapping tables: `git push`, then clear the Shadowrocket cache once (Data → Clear All Data) and reconnect; jsDelivr caches for a few minutes — purge manually with `https://purge.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-acq-discount.js`. Anywhere subscribed modules refresh on their own schedule.
 
 ## Permissions and safety boundary
 
@@ -163,11 +163,11 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 
 | File | Purpose |
 |---|---|
-| `g1-acq-ultra-discount.sgmodule` | Main Shadowrocket module (v7.10): passive collection, configurable mappings, local report with editor |
+| `g1-acq-ultra-discount.sgmodule` | Main Shadowrocket module (v7.11): passive collection, configurable mappings, local report with editor |
 | `g1-acq-v7.sgmodule` | Retained older entry (name **G1 ACQ**), same local mapping config |
-| `g1-acq-discount.js` / `g1-acq.js` | `g1-acq-v7.10-mappings` response scripts (identical implementations) |
+| `g1-acq-discount.js` / `g1-acq.js` | `g1-acq-v7.11-mappings` response scripts (identical implementations) |
 | `g1-sku-report-discount.js` / `g1-sku-report.js` | Local HTML report page, mapping editor, presets, JSON export |
-| `lib/mapping-config.js` | Mapping rule model: exact/prefix rules, presets, revision control, 30-rule cap |
+| `lib/mapping-config.js` | Mapping rule model: exact/prefix rules, presets, revision control, 30-rule cap, `com.google.gemini` namespace |
 | `tools/build-variants.cjs` | Builds the `-discount` module/script variants from the main files |
 | `g1-acq-anywhere.js` | Anywhere port of the rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
 | `g1-acq-proxypin.js` | ProxyPin port (`async onResponse(context, request, response)`), same mapping and guards |

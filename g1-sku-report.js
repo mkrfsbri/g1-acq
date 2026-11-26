@@ -3,8 +3,8 @@
 
 (function () {
   var ROOT = "https://one.google.com/g1-sku-report";
-  var VERSION = "v7.10.0";
-  var COLLECTOR_VERSION = "g1-acq-v7.10-mappings";
+  var VERSION = "v7.11.0";
+  var COLLECTOR_VERSION = "g1-acq-v7.11-mappings";
   var MODE_NAMES = {
     discount75: "Ultra 三个月 75p（2.5折）",
     custom: "手动映射",
@@ -43,6 +43,14 @@ function createG1MappingConfig(store) {
   function presets() {
     return [
       {
+        id: "pro-1yuan",
+        title: "1 元开 Pro（前三月约 1 元/月）",
+        description: "实测成功：改写后收银台前三月约 1 元/月，入口选 Ultra 5x，实际到手 Pro。周期与金额按 App Store 面板核对。",
+        rules: [
+          { match: "exact", from: "g1.ios.20tb.m.v2", to: "com.google.gemini.2tb.ai.m.3month_ip_99p", enabled: true }
+        ]
+      },
+      {
         id: "tr-ultra-30tb",
         title: "土区 30TB · 2949.99 里拉记录",
         description: "旧 iOS 30TB 编号；公开记录曾调起 2949.99 里拉报价，实际金额与周期查看 App Store。",
@@ -72,12 +80,12 @@ function createG1MappingConfig(store) {
 
   function validSku(value) {
     return typeof value === "string" &&
-      /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{0,159}[A-Za-z0-9_-]$(?![\s\S])/.test(value);
+      /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{0,159}[A-Za-z0-9_-]$(?![\s\S])/.test(value);
   }
 
   function validPrefix(value) {
     return typeof value === "string" &&
-      /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{1,159}\.$(?![\s\S])/.test(value);
+      /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{1,159}\.$(?![\s\S])/.test(value);
   }
 
   function hasFields(value, fields, allowExtra) {
@@ -105,7 +113,7 @@ function createG1MappingConfig(store) {
           (rule.match !== "exact" && rule.match !== "prefix") ||
           !(rule.match === "exact" ? validSku(rule.from) : validPrefix(rule.from)) ||
           !validSku(rule.to) || typeof rule.enabled !== "boolean") {
-        return invalidRules("请填写完整 SKU；前缀需以点结尾，目标需为 g1. 或 com.google.one. 编号。");
+        return invalidRules("请填写完整 SKU；前缀需以点结尾，目标需为 g1.、com.google.one. 或 com.google.gemini. 编号。");
       }
       if (rule.from === rule.to) return invalidRules("原始 SKU 与目标 SKU 相同，请填写不同的目标。");
       if (ids[rule.id]) return invalidRules("规则标识重复，请刷新管理页后重试。");
@@ -505,13 +513,13 @@ function createG1MappingConfig(store) {
     return isFinite(number) && number > 0 ? Math.floor(number) : 0;
   }
   function sku(value) {
-    return typeof value === "string" && /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{1,160}$/.test(value) ? value : "";
+    return typeof value === "string" && /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{1,160}$/.test(value) ? value : "";
   }
   function rows(value, withTime, defaultTarget) {
     if (!Array.isArray(value)) return [];
     return value.slice(0, 300).filter(function (row) {
       return row && typeof row.id === "string" &&
-        /^(?:g1\.|com\.google\.one\.)[A-Za-z0-9._-]{1,160}$/.test(row.id);
+        /^(?:g1\.|com\.google\.(?:one|gemini)\.)[A-Za-z0-9._-]{1,160}$/.test(row.id);
     }).map(function (row) {
       var out = { id: row.id, count: count(row.count) };
       if (withTime) {
@@ -718,9 +726,9 @@ function createG1MappingConfig(store) {
       revisionInput() + "<input type=hidden name=id value=\"" + escape(rule.id) + "\">" +
       "<div class=fields><label>匹配方式<select name=match required>" + select + "</select></label>" +
       "<label class=check><input type=checkbox name=enabled value=1" + (draft.enabled ? " checked" : "") + ">启用这条规则</label>" +
-      "<label>原始 SKU<input name=from type=text list=sku-candidates required maxlength=175 pattern=\"(?:g1\\.|com\\.google\\.one\\.)[A-Za-z0-9._\\-]{1,160}\" autocomplete=off autocapitalize=none spellcheck=false value=\"" +
+      "<label>原始 SKU<input name=from type=text list=sku-candidates required maxlength=175 pattern=\"(?:g1\\.|com\\.google\\.(?:one|gemini)\\.)[A-Za-z0-9._\\-]{1,160}\" autocomplete=off autocapitalize=none spellcheck=false value=\"" +
       escape(draft.from.slice(0, 300)) + "\" placeholder=\"g1.ios.20tb.m.v2\"></label>" +
-      "<label>目标 SKU<input name=to type=text list=sku-candidates required maxlength=175 pattern=\"(?:g1\\.|com\\.google\\.one\\.)[A-Za-z0-9._\\-]{0,159}[A-Za-z0-9_\\-]\" autocomplete=off autocapitalize=none spellcheck=false value=\"" +
+      "<label>目标 SKU<input name=to type=text list=sku-candidates required maxlength=175 pattern=\"(?:g1\\.|com\\.google\\.(?:one|gemini)\\.)[A-Za-z0-9._\\-]{0,159}[A-Za-z0-9_\\-]\" autocomplete=off autocapitalize=none spellcheck=false value=\"" +
       escape(draft.to.slice(0, 300)) + "\" placeholder=\"g1.20tb.3months_ip_75p.acq\"></label></div>" +
       "<div class=actions><button class=primary type=submit name=action value=upsert>" + (isNew ? "添加并保存" : "保存这条映射") + "</button>" +
       (isNew ? "" : "<button class=delete type=submit name=action value=delete formnovalidate>删除这条映射</button>") + "</div></fieldset></form>";
