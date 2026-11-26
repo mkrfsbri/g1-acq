@@ -74,4 +74,14 @@ b = '{"a":"g1.ios.20tb.m.v2","b":"g1.20tb.3months_ip_75p.acq"}';
 o = run(b);
 assert.ok(o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A7 produced target not rewritten twice");
 
+// A8: the packaged .amod rule must match a real request URL (single-escaped
+// regex) and embed the same script. A double backslash silently kills every log.
+const amod = fs.readFileSync(path.join(__dirname, "..", "g1-acq.amod"), "utf8");
+const ruleLine = amod.split("\n").find((l) => /^\d+,\s*\d+,\s*/.test(l));
+const [rxText, embedded] = [ruleLine.split(", ").slice(2).join(", ").replace(/, [A-Za-z0-9+/=]+$/, ""), ruleLine.split(", ").pop()];
+const rx = new RegExp(rxText);
+assert.ok(rx.test("https://one.google.com/ai?hl=id"), "A8a amod rule matches one.google.com/ai URLs");
+assert.ok(!/\\\\/.test(rxText), "A8b amod rule uses single escapes");
+assert.strictEqual(Buffer.from(embedded, "base64").toString("utf8"), src, "A8c amod embeds this exact script");
+
 console.log("anywhere-port: ALL PASS");
