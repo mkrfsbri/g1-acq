@@ -12,12 +12,11 @@ function process(ctx) {
   var VERSION = "v7.10";
   var TARGET = "g1.2tb.ai.12months_ip_90p";
   var SOURCE_PREFIX = "g1.ios.2tb.";
-  // Preference order per source: 1-month trial first (v7.6 behaviour, the
-  // offer that already worked here), then the 75p discount. First candidate
-  // present in the region catalog wins; none present leaves the plan alone.
+  // Ultra 1-month free trial (v7.6 / v7.7-trial behaviour). No 75p fallback:
+  // that target is dead in this storefront and its checkout gets rejected.
   var SKU_MAP = {
-    "g1.ios.20tb.m.v2": ["g1.20tb.1month_eft.acq", "g1.20tb.3months_ip_75p.acq"],
-    "g1.ios.30tb.ai.pro.m": ["g1.ai.ultra.1month_eft.acq", "g1.ai.ultra.3months_ip_75p.acq"]
+    "g1.ios.20tb.m.v2": "g1.20tb.1month_eft.acq",
+    "g1.ios.30tb.ai.pro.m": "g1.ai.ultra.1month_eft.acq"
   };
 
   // Collector: every g1.* / com.google.one.* ID, deduped, with counts.
@@ -55,19 +54,9 @@ function process(ctx) {
         if (!targetLive) return match;
         to = TARGET;
       } else if (Object.prototype.hasOwnProperty.call(SKU_MAP, id)) {
-        // Listed target wins. A trial target is used unlisted too: the App
-        // Store sells trial offers this response never enumerates, while a
-        // dead 75p target gets checkout rejected, so only trials go blind.
-        to = SKU_MAP[id].filter(function (c) {
-          return Object.prototype.hasOwnProperty.call(found, c);
-        })[0] || SKU_MAP[id].filter(function (c) { return c.indexOf("_eft") !== -1; })[0];
-        if (!to) {
-          Anywhere.log.warning("[g1-acq] " + VERSION + " no candidate target in region catalog, " + id + " left as-is");
-          return match;
-        }
-        if (!Object.prototype.hasOwnProperty.call(found, to)) {
-          Anywhere.log.warning("[g1-acq] " + VERSION + " " + to + " unlisted in catalog, trying anyway");
-        }
+        // Trial targets are sold unlisted: this response never enumerates
+        // them, yet the App Store checkout accepts them.
+        to = SKU_MAP[id];
       } else {
         return match;
       }

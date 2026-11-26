@@ -32,39 +32,25 @@ o = run(b);
 assert.ok(o.includes('"sku":"g1.ios.2tb.m.3month_ip_75p"') && o.includes('"t":"g1.ios.2tb.a.12month_ip_15p"'), "A1b region guard keeps real 2TB plans");
 assert.ok(logs.some((l) => l.includes("2TB rewrite skipped")), "A1c guard logged");
 
-// A2: 20TB -> 3-month 75p offer (upstream default mode discount75)
-b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
+// A2: 20TB -> Ultra 1-month trial, even though the response never lists it
+b = '{"a":"g1.ios.20tb.m.v2","b":"g1.20tb.3months_ip_75p.acq"}';
 o = run(b);
-assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
+assert.ok(o.includes('"a":"g1.20tb.1month_eft.acq"'), "A2 20TB -> trial");
+assert.ok(o.includes('"b":"g1.20tb.3months_ip_75p.acq"'), "A2b 75p entry left alone");
 
-// A2b: neither candidate listed -> unlisted trial used, 75p never invented
-b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
-o = run(b);
-assert.ok(o.includes("g1.20tb.1month_eft.acq") && !o.includes("3months_ip_75p.acq"), "A2b unlisted trial, 75p gated");
-assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2b logged");
-
-// A3: 30TB -> AI Ultra 3-month 75p (target live in catalog)
+// A3: 30TB -> AI Ultra 1-month trial
 b = '{"a":"g1.ios.30tb.ai.pro.m","b":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
-assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A3 30TB -> Ultra 75p");
+assert.ok(o.includes('"a":"g1.ai.ultra.1month_eft.acq"'), "A3 30TB -> Ultra trial");
 
-// A2e: trial target unlisted -> still used (App Store sells unlisted trial
-// offers; the 75p target stays gated)
-b = '{"a":"g1.ios.30tb.ai.pro.m"}';
-o = run(b);
-assert.ok(o.includes("g1.ai.ultra.1month_eft.acq"), "A2e unlisted trial still used");
-assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2e logged");
-
-// A2d: both candidates present -> the 1-month trial wins over 75p
-b = '{"a":"g1.20tb.1month_eft.acq","b":"g1.20tb.3months_ip_75p.acq","c":"g1.ios.20tb.m.v2"}';
-o = run(b);
-assert.ok(o.includes('"c":"g1.20tb.1month_eft.acq"'), "A2d trial preferred when both listed");
+// A3b: no 75p fallback survives anywhere in the module
+assert.ok(!/3months_ip_75p/.test(require("fs").readFileSync(require("path").join(__dirname, "..", "g1-acq-anywhere.js"), "utf8")), "A3b no 75p target in source");
 
 // A4: complete-token guard (longer ID sharing the prefix is not rewritten)
-b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m","c":"g1.ai.ultra.3months_ip_75p.acq"}';
+b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m"}';
 o = run(b);
 assert.ok(o.includes("g1.ios.20tb.m.v2extra"), "A4 complete-token guard");
-assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A4b sibling rule still fires");
+assert.ok(o.includes("g1.ai.ultra.1month_eft.acq"), "A4b sibling rule still fires");
 
 // A5: collector dedup + counts
 b = '{"a":"g1.ios.2tb.m.v2","b":"g1.ios.2tb.m.v2","c":"com.google.one.foo.bar"}';
