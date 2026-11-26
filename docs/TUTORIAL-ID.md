@@ -110,6 +110,23 @@ Setiap rule hanya dieksekusi kalau SKU target **ada di respons region**. Ini sen
 
 ---
 
+## 4b. Probe: lihat katalog asli satu region
+
+Kalau butuh tahu SKU apa saja yang benar-benar dijual storefront (misal habis ganti region Apple ID), pakai modul probe. Dia **tidak mengubah apa pun**, cuma mencatat:
+
+```
+https://raw.githubusercontent.com/mkrfsbri/g1-acq/main/g1-acq-probe.amod
+```
+
+Aktifkan probe (matikan modul g1-acq dulu supaya log-nya bersih), buka halaman plan, lalu baca:
+
+```
+[g1-acq-probe] collected 12 id(s): ...
+[g1-acq-probe] raw fields (23): "g1.ios.ai.2tb.m.ip_3mo_75p.acq" | ...
+```
+
+Baris `raw fields` memuat potongan JSON asli, jadi SKU trial yang umurnya pendek tetap kelihatan. Catat ID yang menarik, lalu masukkan ke mapping modul utama.
+
 ## 5. Menambah mapping sendiri
 
 Urutan riset yang benar:

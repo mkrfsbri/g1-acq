@@ -170,6 +170,7 @@ After changing mapping tables: `git push`, then clear the Shadowrocket cache onc
 | `lib/mapping-config.js` | Mapping rule model: exact/prefix rules, presets, revision control, 30-rule cap, `com.google.gemini` namespace |
 | `tools/build-variants.cjs` | Builds the `-discount` module/script variants from the main files |
 | `g1-acq-anywhere.js` | Anywhere port of the rewrite + log-mode collector (`process(ctx)` + `Anywhere.codec` API) |
+| `g1-acq-probe.js` / `g1-acq-probe.amod` | Collector-only port: logs every SKU and raw plan field, rewrites nothing. Use it to enumerate a region's real catalog |
 | `g1-acq-proxypin.js` | ProxyPin port (`async onResponse(context, request, response)`), same mapping and guards |
 | `g1-acq.amod` | Anywhere module (embeds the script above, import and use) |
 | `anywhere-direct.yaml` | Blank direct profile so Anywhere can connect without a server |
