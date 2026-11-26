@@ -38,16 +38,16 @@ Masuk ke halaman plan **selalu** lewat: aplikasi **Google App** (ikon G warna-wa
 6. Buka Google App → Google One management → buka plan apa pun (2TB / 20TB / 30TB)
 7. Lihat console script ProxyPin. Baris yang harus muncul:
    ```
-   [g1-acq] v7.10 collected 12 id(s): ...
+   [g1-acq] v7.11 collected 12 id(s): ...
    ```
 8. Kalau ada target yang dieksekusi:
    ```
    [g1-acq] g1.ios.20tb.m.v2 -> g1.20tb.3months_ip_75p.acq
-   [g1-acq] v7.10 rewrote 16 occurrence(s)
+   [g1-acq] v7.11 rewrote 16 occurrence(s)
    ```
 9. Kalau target tidak ada di katalog region:
    ```
-   [g1-acq] v7.10 g1.20tb.3months_ip_75p.acq not in region catalog, g1.ios.20tb.m.v2 left as-is
+   [g1-acq] v7.11 g1.20tb.3months_ip_75p.acq not in region catalog, g1.ios.20tb.m.v2 left as-is
    ```
 
 Setelah `rewrote`, tap plan dan **baca sheet checkout. Jangan konfirmasi** sampai nama produk dan harganya sesuai harapan.
@@ -70,8 +70,8 @@ Setelah `rewrote`, tap plan dan **baca sheet checkout. Jangan konfirmasi** sampa
 6. Aktifkan modul, connect VPN
 7. Buka plan di Google App, cek Log:
    ```
-   [g1-acq] v7.10 collected ...
-   [g1-acq] v7.10 rewrote N occurrence(s)
+   [g1-acq] v7.11 collected ...
+   [g1-acq] v7.11 rewrote N occurrence(s)
    ```
 
 Batasan port Anywhere: tanpa penyimpanan persisten dan tanpa halaman report lokal. Kolektor jalan mode log saja.
@@ -87,7 +87,7 @@ Batasan port Anywhere: tanpa penyimpanan persisten dan tanpa halaman report loka
 3. Pastikan `one.google.com` ada di daftar hostname decryption
 4. Config → Modules → **+** → tempel:
    ```
-   https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.10.0/g1-acq-ultra-discount.sgmodule
+   https://cdn.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-acq-ultra-discount.sgmodule
    ```
 5. Modul on → long-press → reconnect
 6. Buka `https://one.google.com/g1-sku-report` di Safari untuk melihat SKU terkumpul, **mengedit mapping**, memakai preset, dan export JSON

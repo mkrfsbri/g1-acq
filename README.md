@@ -97,7 +97,7 @@ Requires iOS 18+.
    ```
 6. Toggle the module on, connect the VPN
 7. Google App → Google One management → subscription page → the 2TB / 20TB / 30TB plans
-8. Verify: search the log for `[g1-acq]`; `v7.6 rewrote N occurrence(s)` means it is working
+8. Verify: search the log for `[g1-acq]`; `v7.11 rewrote N occurrence(s)` means it is working
 
 Anywhere port limits (vs Shadowrocket): no persistent storage and no local report page — the collector runs in log mode only, and there is no `g1-sku-report` page. One deliberate deviation from upstream: the 2TB → 12-month 90p rewrite only fires when a 2TB 90p offer appears in your region's response; where it does not (e.g. region ID), the real 2TB plans stay untouched and purchasable. Everything else (75p default and 2TB target, ID logging) matches upstream v7.11 defaults; the on-device mapping editor is Shadowrocket-only, so the port keeps the built-in rules.
 
@@ -108,7 +108,7 @@ ProxyPin runs the same logic from a JS script instead of a module. It captures H
 1. Install [ProxyPin](https://apps.apple.com/id/app/proxypin-tangkap-trafik/id6450932949), start the VPN capture, install and trust its CA certificate (iOS Settings → General → About → **Certificate Trust Settings**)
 2. Add `one.google.com` to the capture/rewrite domain filter
 3. Script → new script → paste `g1-acq-proxypin.js` from this repo, then enable it
-4. Google App → Google One management → open a plan page → check the ProxyPin script console for `[g1-acq] v7.6` (port) or `[g1-acq] v7.11` (Shadowrocket)
+4. Google App → Google One management → open a plan page → check the ProxyPin script console for `[g1-acq] v7.11`
 
 The script keeps the same mapping and the same catalog guard as the Anywhere port. ProxyPin also exposes a File API in the app support directory if you want the collected IDs written to disk between sessions; the script logs only.
 
@@ -144,8 +144,8 @@ Anywhere: search the log for `g1-acq`:
 
 | Log | Meaning |
 |---|---|
-| `v7.6 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` ID in the response, deduped with counts |
-| `v7.6 rewrote N occurrence(s)` | Replacement executed |
+| `v7.11 collected N id(s): ...` | Every `g1.*` / `com.google.one.*` / `com.google.gemini.*` ID in the response, deduped with counts |
+| `v7.11 rewrote N occurrence(s)` | Replacement executed |
 | `2TB target 90p not in region catalog, 2TB rewrite skipped` | Region guard: real regional 2TB plans left purchasable |
 
 After changing mapping tables: `git push`, then clear the Shadowrocket cache once (Data → Clear All Data) and reconnect; jsDelivr caches for a few minutes — purge manually with `https://purge.jsdelivr.net/gh/mkrfsbri/g1-acq@v7.11.0/g1-acq-discount.js`. Anywhere subscribed modules refresh on their own schedule.
