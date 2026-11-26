@@ -37,28 +37,19 @@ b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
 assert.ok(!o.includes("g1.ios.20tb.m.v2") && o.match(/g1\.20tb\.3months_ip_75p\.acq/g).length === 2, "A2 20TB -> 75p");
 
-// A2b: neither candidate listed -> unlisted trial used, 75p never invented
+// A2b: 75p target absent from the catalog -> left as-is, no blind rewrite
 b = '{"a":"g1.20tb.3months_ip_90p.acq","b":"g1.ios.20tb.m.v2"}';
 o = run(b);
-assert.ok(o.includes("g1.20tb.1month_eft.acq") && !o.includes("3months_ip_75p.acq"), "A2b unlisted trial, 75p gated");
-assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2b logged");
+assert.ok(o.includes('"b":"g1.ios.20tb.m.v2"') && !o.includes("3months_ip_75p"), "A2b catalog guard skips absent target");
+assert.ok(logs.some((l) => l.includes("not in region catalog")), "A2b logged");
 
 // A3: 30TB -> AI Ultra 3-month 75p (target live in catalog)
 b = '{"a":"g1.ios.30tb.ai.pro.m","b":"g1.ai.ultra.3months_ip_75p.acq"}';
 o = run(b);
 assert.ok(o.match(/g1\.ai\.ultra\.3months_ip_75p\.acq/g).length === 2, "A3 30TB -> Ultra 75p");
 
-// A2e: trial target unlisted -> still used (App Store sells unlisted trial
-// offers; the 75p target stays gated)
-b = '{"a":"g1.ios.30tb.ai.pro.m"}';
-o = run(b);
-assert.ok(o.includes("g1.ai.ultra.1month_eft.acq"), "A2e unlisted trial still used");
-assert.ok(logs.some((l) => l.includes("unlisted in catalog, trying anyway")), "A2e logged");
-
-// A2d: both candidates present -> the 1-month trial wins over 75p
-b = '{"a":"g1.20tb.1month_eft.acq","b":"g1.20tb.3months_ip_75p.acq","c":"g1.ios.20tb.m.v2"}';
-o = run(b);
-assert.ok(o.includes('"c":"g1.20tb.1month_eft.acq"'), "A2d trial preferred when both listed");
+// A3b: no trial target left anywhere in the module
+assert.ok(!/1month_eft/.test(fs.readFileSync(path.join(__dirname, "..", "g1-acq-anywhere.js"), "utf8")), "A3b no trial target in source");
 
 // A4: complete-token guard (longer ID sharing the prefix is not rewritten)
 b = '{"a":"g1.ios.20tb.m.v2extra","b":"g1.ios.30tb.ai.pro.m","c":"g1.ai.ultra.3months_ip_75p.acq"}';
