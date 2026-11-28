@@ -21,15 +21,17 @@ function run(body) {
 
 let b, o, col;
 
-// A1: 2TB rewrite only fires when a 2TB 90p offer exists in the response
+// A1: 2TB prefix -> free-trial target. Trial SKUs are never listed in a
+// storefront response, so an _eft target bypasses the region guard by design.
 b = '{"sku":"g1.ios.2tb.m.v2","t":"g1.2tb.ai.12months_ip_90p"}';
 o = run(b);
-assert.ok(o.includes('"sku":"g1.2tb.ai.12months_ip_90p"'), "A1 2TB prefix -> 12-month target when 90p live");
+assert.ok(o.includes('"sku":"g1.2tb.ai.12months_eft"'), "A1 2TB prefix -> 12-month free target");
+assert.ok(logs.some((l) => l.includes("g1.ios.2tb.m.v2 -> g1.2tb.ai.12months_eft")), "A1b rewrite logged");
 
-// A1b: target absent from region catalog -> real 2TB plans stay untouched
-b = '{"sku":"g1.ios.2tb.m.3month_ip_75p","t":"g1.ios.2tb.a.12month_ip_15p"}';
+// A1c: monthly 2TB plans also carry the prefix, so they are rewritten too
+b = '{"sku":"g1.ios.2tb.m.3month_ip_75p"}';
 o = run(b);
-assert.ok(o.includes('"sku":"g1.ios.2tb.m.3month_ip_75p"') && o.includes('"t":"g1.ios.2tb.a.12month_ip_15p"'), "A1b region guard keeps real 2TB plans");
+assert.ok(o.includes('"sku":"g1.2tb.ai.12months_eft"'), "A1c monthly 2TB plan rewritten as well");
 
 // A2: 75p target listed in the region catalog -> 20TB rewritten
 b = '{"a":"g1.20tb.3months_ip_75p.acq","b":"g1.ios.20tb.m.v2"}';

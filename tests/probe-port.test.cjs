@@ -35,6 +35,14 @@ assert.ok(!fields.includes("VfPpkd"), "B3c CSS noise filtered out");
 const toks = logs.find((l) => l.includes("offer tokens:"));
 assert.ok(toks && toks.includes("ip_3mo_75p.acq"), "B4 offer token logged");
 
+// B6: price pairing — each SKU is read against the amount that follows it.
+// This is the only way to price a plan without opening the App Store sheet.
+logs.length = 0;
+process({ body: '[["g1.ios.30gb.m.1month_ip_75p",null,"Lite",null,"com.google.GoogleMobile.ios.generic",5],["IDR",14500],3,[[null,[null,[["IDR",3500],1]]]],4,1],["g1.ios.20tb.m.v2",null,"Ultra",null,"x",5],["IDR",3399000]]' });
+const pr = logs.find((l) => l.includes("prices:"));
+assert.ok(pr.includes("g1.ios.30gb.m.1month_ip_75p -> IDR 14500/IDR 3500"), "B6a list and promo price paired");
+assert.ok(pr.includes("g1.ios.20tb.m.v2 -> IDR 3399000"), "B6b ultra price paired");
+
 // B5: packaged .amod embeds this script and its rule matches a real URL
 const amod = fs.readFileSync(path.join(__dirname, "..", "g1-acq-probe.amod"), "utf8");
 const ruleLine = amod.split("\n").find((l) => /^\d+,\s*\d+,\s*/.test(l));

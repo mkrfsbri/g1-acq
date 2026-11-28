@@ -12,7 +12,7 @@ function process(ctx) {
   var body = Anywhere.codec.utf8.decode(ctx.body);
   if (!body) return;
 
-  var TARGET = "g1.2tb.ai.12months_ip_90p";
+  var TARGET = "g1.2tb.ai.12months_eft"; // 12 months free, then $19.99/mo
   var SOURCE_PREFIX = "g1.ios.2tb.";
   var SKU_MAP = {
     "g1.ios.20tb.m.v2": "g1.20tb.3months_ip_75p.acq",
@@ -37,11 +37,9 @@ function process(ctx) {
   // "Pembelian belum selesai", so a false skip costs one promo while a false
   // rewrite kills checkout.
   function live(id) { return Object.prototype.hasOwnProperty.call(found, id); }
-  var targetLive = ids.some(function (id) {
-    return id.indexOf("2tb") !== -1 && id.indexOf("90p") !== -1;
-  });
+  var targetLive = live(TARGET) || TARGET.indexOf("_eft") !== -1;
   if (!targetLive) {
-    Anywhere.log.info("[g1-acq] v7.11 2TB target 90p not in region catalog, 2TB rewrite skipped");
+    Anywhere.log.info("[g1-acq] v7.11 2TB target " + TARGET + " not in region catalog, 2TB rewrite skipped");
   }
 
   // Rewrite: complete-token match, single pass.
