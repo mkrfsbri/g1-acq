@@ -51,22 +51,43 @@ function process(ctx) {
   // plan entry; some locales add "Rp 19.000". Both forms are read out of a
   // window that starts at each distinct g1.ios.* occurrence.
   // ponytail: fixed 400-char window; widen if a price sits further away.
-  var priceRe = /"([A-Z]{3})",\s*(\d{2,9})|(?:Rp|IDR|\$|¥|€|₺|₫|₹)\s?(\d[\d.,]{1,12})/g;
+  var priceRe = /"([A-Z]{3})"\s*,\s*(\d{2,9})|(\d{2,9})\s*,\s*"([A-Z]{3})"|(?:Rp|IDR|\$|¥|€|₺|₫|₹)\s?(\d[\d.,]{1,12})/g;
   var rows = [], seenSku = {};
   var skuRe = /g1\.ios\.[A-Za-z0-9._-]+/g;
   while ((m = skuRe.exec(text)) !== null) {
     var sku = m[0];
     if (seenSku[sku]) continue;
     seenSku[sku] = 1;
-    var win = text.slice(m.index, m.index + 400), mm, amounts = [];
-    priceRe.lastIndex = 0;
-    while ((mm = priceRe.exec(win)) !== null) {
-      var val = mm[1] ? mm[1] + " " + mm[2] : mm[3];
-      if (amounts.indexOf(val) === -1) amounts.push(val);
-      if (amounts.length >= 3) break;
+    var mm, amounts = [];
+    // Forward first (the price follows its plan entry), then backward.
+    var nextSku = text.indexOf("g1.ios.", m.index + 7);
+    var fwdEnd = nextSku > 0 ? Math.min(nextSku, m.index + 700) : m.index + 700;
+    for (var dir = 0; dir < 2 && !amounts.length; dir++) {
+      var win = dir ? text.slice(Math.max(0, m.index - 700), m.index) : text.slice(m.index, fwdEnd);
+      priceRe.lastIndex = 0;
+      while ((mm = priceRe.exec(win)) !== null) {
+        var val = mm[1] ? mm[1] + " " + mm[2] : (mm[3] ? mm[4] + " " + mm[3] : mm[5]);
+        if (amounts.indexOf(val) === -1) amounts.push(val);
+        if (amounts.length >= 3) break;
+      }
     }
     rows.push(sku + " -> " + (amounts.join("/") || "no price nearby"));
     if (rows.length >= 12) break;
   }
   if (rows.length) Anywhere.log.info("[g1-acq-probe] prices: " + rows.join(" | "));
+
+  // Fallback: nothing paired means the amounts live somewhere else in the
+  // payload. Dump the distinct currency+amount pairs instead of guessing where.
+  if (rows.length && rows.every(function (r) { return r.indexOf("no price nearby") !== -1; })) {
+    priceRe.lastIndex = 0;
+    var glob = [], seenG = {};
+    while ((m = priceRe.exec(text)) !== null) {
+      var g = m[1] ? m[1] + " " + m[2] : (m[3] ? m[4] + " " + m[3] : m[5]);
+      if (seenG[g]) continue;
+      seenG[g] = 1;
+      glob.push(g);
+      if (glob.length >= 16) break;
+    }
+    Anywhere.log.info("[g1-acq-probe] price pairs (global): " + (glob.join(", ") || "none"));
+  }
 }

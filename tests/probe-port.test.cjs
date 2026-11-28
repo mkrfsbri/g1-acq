@@ -42,6 +42,13 @@ process({ body: '[["g1.ios.30gb.m.1month_ip_75p",null,"Lite",null,"com.google.Go
 const pr = logs.find((l) => l.includes("prices:"));
 assert.ok(pr.includes("g1.ios.30gb.m.1month_ip_75p -> IDR 14500/IDR 3500"), "B6a list and promo price paired");
 assert.ok(pr.includes("g1.ios.20tb.m.v2 -> IDR 3399000"), "B6b ultra price paired");
+assert.ok(pr.includes("g1.ios.30gb.m.1month_ip_75p -> IDR 14500/IDR 3500 |"), "B6c price window stops at the next SKU");
+
+// B6d: price too far away -> global fallback line instead of silence
+logs.length = 0;
+process({ body: '["g1.ios.2tb.m.3month_ip_75p","' + "x".repeat(1500) + '"' + ',["IDR",75000]]' });
+const gl = logs.find((l) => l.includes("price pairs (global):"));
+assert.ok(gl && gl.includes("IDR 75000"), "B6d global price fallback");
 
 // B5: packaged .amod embeds this script and its rule matches a real URL
 const amod = fs.readFileSync(path.join(__dirname, "..", "g1-acq-probe.amod"), "utf8");
